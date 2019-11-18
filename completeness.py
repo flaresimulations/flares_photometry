@@ -80,7 +80,7 @@ for ii, jj in enumerate(z):
 
     ok = np.where(part == 100)
 
-    percentile[ii] = np.percentile(Mlum[ok], 5, axis = 0)
+    percentile[ii] = np.percentile(Mlum[ok], 95, axis = 0)
 
 for ii, jj in enumerate(filters):
 
