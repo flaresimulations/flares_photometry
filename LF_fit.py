@@ -1,141 +1,198 @@
+"""
+Fit GSMF for all redshifts and all simulations
+"""
+
+import sys
 import numpy as np
 import pandas as pd
-import schwimmbad
+import scipy
+import matplotlib
+matplotlib.use('Agg')
+from functools import partial
+matplotlib.rcParams['text.usetex'] = True
+import matplotlib.pyplot as plt
+
+from emcee.autocorr import integrated_time
 
 import fitDF.fitDF as fitDF
 import fitDF.models as models
 import fitDF.analyse as analyse
 
-from functools import partial
-import h5py
-import scipy
-import matplotlib.pyplot as plt
-from FLARE.photom import lum_to_M, M_to_lum
-from plot_obs import plot_obs
-
-def fit(M, theta):
-
-    log10phistar, alpha, Mstar = theta
-    delta = M - Mstar
-
-    return np.log10(0.4*np.log(10)) + log10phistar - 0.4*delta*(alpha+1.) - (np.log10(np.e)) * (10**(-0.4*delta))
+import flares
+from modules import get_lum_all, Schechter, DPL, fit_function
+import fit_bootstrap
+from mpi4py import MPI
+import seaborn as sns
+sns.set_context("paper")
 
 
-def get_hist(ii, tag, bins, inp='GEAGLE', filter = 'FUV'):
-
-    if inp == 'GEAGLE':
-
-        num = str(ii)
-
-        if len(num) == 1:
-            num =  '0'+num
-
-        filename = '../photometry/out/GEAGLE_{}_sp_info.hdf5'.format(num)
-
-
-    with h5py.File(filename,'r') as hf:
-
-        lum = np.array(hf[F"{tag}/Subhalo/BPASS/SalpeterIMF/ModelI/Luminosity/Dustcorr/{filter}"])
-
-        tmp, edges = np.histogram(lum_to_M(lum), bins = bins)
-
-        return tmp
-
-
-def get_all(tag, bins = np.arange(-25, -16, 0.5), inp = 'GEAGLE', filter = 'FUV'):
-
-    if inp == 'GEAGLE':
-
-        sims = np.arange(0,38)
-
-        df = pd.read_csv('weight_files/weights_grid.txt')
-        weights = np.array(df['weights'])
-
-        calc = partial(get_hist, tag = tag, bins = bins, inp = inp, filter = filter)
-
-        pool = schwimmbad.MultiPool(processes=12)
-        dat = np.array(list(pool.map(calc, sims)))
-        pool.close()
-
-
-        hist = np.sum(dat, axis = 0)
-        out = np.zeros(len(bins)-1)
-        for ii, sim in enumerate(sims):
-
-            out+=dat[ii]*weights[ii]
-
-        return out, hist
-
-    else:
-
-        out = get_hist(00, tag, bins, inp = 'REF')
-
-        return out
-
-
-# plt.style.use('simple')
-ID = 'fit_out'
-h=0.6777
-
-zs = [5, 6, 7, 8, 9, 10]
-tags = ['010_z005p000', '009_z006p000', '008_z007p000', '007_z008p000', '006_z009p000', '005_z010p000']
-tags_ref = ['008_z005p037', '006_z005p971', '005_z007p050', '004_z008p075', '003_z008p988', '002_z009p993']
-
-bins = np.arange(-25, -17., 0.4)#np.arange(np.log10(M_to_lum(-17.7)), np.log10(M_to_lum(-23.4)), 0.2)
-bincen = (bins[1:]+bins[:-1])/2.
-binwidth = bins[1:] - bins[:-1]
+model = 'Schechter'
+zs = [5., 6., 7., 8., 9., 10.]
+fl = flares.flares('./data/flares.hdf5')
+h = 0.6777
 vol = (4/3)*np.pi*(14/h)**3
+refvol = 100**3
+AGNdT9vol = 50**3
+filters = 'FUV'
 
-out, hist = get_all(tags[3], bins)
+if model == 'Schechter':
+    folder = 'fit_Sch'
+elif model == 'DPL':
+    folder = 'fit_DPL'
 
-phi = out/(vol*binwidth)
+tags = fl.tags[::-1]
 
-N_sample = phi*(binwidth*(3200**3))
+def fitdf(ii, tag, N_up, N, V, bins, model):
 
-observations = [{'bin_edges': bins, 'N': N_sample, 'volume': 3200**3}]
+    bincen = (bins[1:]+bins[:-1])/2.
+    binwidth = bins[1:] - bins[:-1]
+
+    #obs = [{'bin_edges': bins, 'N': N_up, 'volume': V, 'Ntot': N}]
+    obs = [{'bin_edges': bins, 'N': N_up, 'volume': V, 'sigma': N_up/np.sqrt(N)}]
+    # print("upscaled N", N_up,
+    #       "\nN", N,
+    #       "\nsigma", obs[0]['sigma'])
+    print (obs)
+    priors = {}
+
+    if model == 'Schechter':
+        model = models.Schechter_Mags()
+        folder = 'fit_Sch'
+        out = fit_bootstrap.fitter(tag)
+        # print (out)
+        priors['log10phi*'] = scipy.stats.uniform(loc=-8, scale=6.0)
+        priors['alpha'] = scipy.stats.uniform(loc=-4., scale=3.0)
+        priors['D*'] = scipy.stats.uniform(loc = -23, scale = 4.0)
+        # if tag == '010_z005p000':
+        #     priors['log10phi*'] = scipy.stats.uniform(loc=out[0]-0.5, scale=1.)
+        #     priors['alpha'] = scipy.stats.uniform(loc=out[1]-0.5, scale=1.)
+        #     priors['D*'] = scipy.stats.uniform(loc=out[2]-0.5, scale=1.)
+        # if tag == '006_z009p000':
+        #     priors['D*'] = scipy.stats.uniform(loc=-21., scale=0.3)
+        if tag == '006_z009p000':
+            priors['D*'] = scipy.stats.uniform(loc=-20.95, scale=0.5)
+        if tag == '005_z010p000':
+            priors['D*'] = scipy.stats.uniform(loc=-20.8, scale=0.9)
 
 
-print(observations)
-
-# ----- Define Priors manually...
-model = models.Schechter_Mags()
-
-priors = {}
-priors['log10phi*'] = scipy.stats.uniform(loc = -5., scale = 4.)
-priors['alpha'] = scipy.stats.uniform(loc = -2.5, scale = 1)
-priors['D*'] = scipy.stats.uniform(loc = -23, scale = 4.)
-
-
-
-# model = models.DoubleSchechter_Mags()
-#
-# priors = {}
-# priors['log10phi*_1'] = scipy.stats.uniform(loc = -4, scale = 7.0)
-# priors['alpha_1'] = scipy.stats.uniform(loc = -2.0, scale = 3.0)
-# priors['log10phi*_2'] = scipy.stats.uniform(loc = -5, scale = 7.0)
-# priors['alpha_2'] = scipy.stats.uniform(loc = -3.0, scale = 3.0)
-# priors['D*'] = scipy.stats.uniform(loc = -23., scale = 5.0)
-
-# -------------------- fit sampled LF and plot median fit
-
-fitter = fitDF.fitter(observations, model=model, priors=priors, output_directory = ID)
-fitter.fit(nwalkers = 50, nsamples = 500, burn = 100)
-# fitter.fit(nsamples = 2000, burn = 500, sample_save_ID = 'a_different_ID') # to save the samples as something other than samples.p
+    elif model == 'DPL':
+        model = models.DPL_Mags()
+        folder = 'fit_DPL'
+        priors['log10phi*'] = scipy.stats.uniform(loc=-6, scale=3.0)
+        priors['alpha_1'] = scipy.stats.uniform(loc=-3.5, scale=1.6)
+        priors['alpha_2'] = scipy.stats.uniform(loc=-5.2, scale=2)
+        priors['D*'] = scipy.stats.uniform(loc = -23, scale = 3)
+        if tag == '006_z009p000':
+            priors['D*'] = scipy.stats.uniform(loc = -21.0, scale = 1.3)
+        if tag == '005_z010p000':
+            priors['D*'] = scipy.stats.uniform(loc = -20.8, scale = 1.3)
+    else:
+        raise ValueError("Model not recognized")
 
 
-# -------------------- make simple analysis plots
+    fitter = fitDF.fitter(obs, model=model, priors=priors, output_directory=folder)
+    fitter.lnlikelihood = fitter.gaussian_lnlikelihood
+    samples = fitter.fit(nsamples=int(8e4), burn=int(7.5e4), sample_save_ID=f'{folder}_z{int(zs[ii])}', use_autocorr=False, verbose=True)
 
-a = analyse.analyse(ID = ID, model = model, observations=observations)
-fig = a.triangle(hist2d = True, ccolor='0.5')
-plt.savefig(f'{fit_out}/triangle.png')
-plt.close()
+    return samples
 
-fig, axs = plt.subplots(nrows = 1, ncols = 1, figsize=(8, 8), sharex=True, sharey=True,
-                            facecolor='w', edgecolor='k')
 
-axs.plot(bincen, fit(bincen, model.sp.values()), label = 'fit')
-axs.plot(bincen, np.log10(phi), label = 'data')
-plot_obs(z, axs)
-axs.legend(fontsize = 15, frameon = False)
-plt.savefig(f'{fit_out}/fit_fitdf.png')
-plt.show()
+def fit(ii, tag, bins, model):
+
+    print('tag:',tag)
+    V = (3200)**3
+    bincen = (bins[1:]+bins[:-1])/2.
+    binwidth = bins[1:] - bins[:-1]
+
+    out, hist_all, err = get_lum_all(tags[ii], bins = bins)
+
+    phi = out/(vol*binwidth)
+    err = err/(vol*binwidth)
+
+    N = models.phi_to_N(phi,V,bins)
+
+    samples = fitdf(ii, tag, N, hist_all, V, bins, model)
+
+    return None
+
+
+comm = MPI.COMM_WORLD
+rank = comm.Get_rank()
+size = comm.Get_size()
+
+if rank == 0: print (F"MPI size = {size}")
+
+
+for ii, z in enumerate(zs):
+    # ii = ii
+    if rank == ii:
+        df = pd.read_csv('Magnitude_limits.txt')
+        low = np.array(df[filters])[ii]
+
+        bins = -np.arange(-low, 25, 0.5)[::-1]
+
+        fit(ii, tags[ii], bins, model)
+
+
+if rank == 0:
+
+    fig, axs = plt.subplots(nrows = 1, ncols = 1, figsize=(8, 7), sharex=True, sharey=True, facecolor='w', edgecolor='k')
+
+    norm = matplotlib.colors.Normalize(vmin=0.5, vmax=len(zs)+0.5)
+
+    # choose a colormap
+    c_m = matplotlib.cm.viridis_r
+
+    # create a ScalarMappable and initialize a data structure
+    s_m = matplotlib.cm.ScalarMappable(cmap=c_m, norm=norm)
+    s_m.set_array([])
+
+    for ii, z in enumerate(zs):
+        df = pd.read_csv('Magnitude_limits.txt')
+        low = np.array(df[filters])[ii]
+        bins = -np.arange(-low, 25, 0.5)[::-1]
+        bincen = (bins[1:]+bins[:-1])/2.
+        binwidth = bins[1:] - bins[:-1]
+        parent_volume = (3200)**3
+
+        out, hist, err = get_lum_all(tags[ii], bins=bins)
+
+        Msim = out/(binwidth*vol)
+        xerr = np.ones(len(out))*binwidth[0]/2.
+        yerr = err/(vol*binwidth)
+        mask = np.where(hist==1)[0]
+        uplims = np.zeros(len(bincen))
+        uplims[mask] = True
+        y_lo = np.log10(Msim)-np.log10(Msim-yerr)
+        y_up =  np.log10(Msim+yerr)-np.log10(Msim)
+        y_lo[mask] = 4.
+
+        observed = Msim*(binwidth*parent_volume)
+        sigma = observed/np.sqrt(hist)
+
+        yy = fit_function(model, observed, sigma, bins, z)
+
+        axs.errorbar(bincen, np.log10(Msim), yerr=[y_lo, y_up], uplims=uplims, ls='', marker='o', color=s_m.to_rgba(ii+0.5))
+        axs.plot(bincen, yy, lw = 2, ls = 'solid', color=s_m.to_rgba(ii+0.5))
+
+    axs.grid(True, alpha=0.6)
+    axs.set_xlim(-17, -24.5)
+    axs.set_ylim(-9, -1.9)
+    axs.set_ylabel(r'$\mathrm{log}_{10}(\Phi/(\mathrm{cMpc}^{-3}\mathrm{Mag}^{-1}))$', fontsize=22)
+    axs.set_xlabel(r'$\mathrm{M}_{1500}$', fontsize=22)
+    axs.minorticks_on()
+    axs.tick_params(axis='x', which='minor', direction='in')
+    axs.tick_params(axis='y', which='minor', direction='in')
+
+    cbaxes = fig.add_axes([0.15, 0.25, 0.03, 0.3])
+    fig.colorbar(s_m, cax=cbaxes)
+    cbaxes.set_ylabel(r'$z$', fontsize = 24)
+    cbaxes.set_yticks(np.arange(len(zs)))
+    cbaxes.set_yticklabels(zs)
+    cbaxes.invert_yaxis()
+    for label in (axs.get_xticklabels() + axs.get_yticklabels() + cbaxes.get_yticklabels()):
+        label.set_fontsize(22)
+
+
+    plt.savefig(F'{folder}/fit_gaussian.pdf', bbox_inches='tight')
+    plt.close()
