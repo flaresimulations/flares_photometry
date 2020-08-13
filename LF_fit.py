@@ -1,5 +1,8 @@
 """
-Fit GSMF for all redshifts and all simulations
+
+    Fit UV LF for all redshifts and all simulations. Use mpi
+    for parallelising different redshifts
+
 """
 
 import sys
@@ -58,41 +61,39 @@ def fitdf(ii, tag, N_up, N, V, bins, model):
     if model == 'Schechter':
         model = models.Schechter_Mags()
         folder = 'fit_Sch'
-        out = fit_bootstrap.fitter(tag)
+        # out = fit_bootstrap.fitter(tag)
         # print (out)
-        priors['log10phi*'] = scipy.stats.uniform(loc=-8, scale=6.0)
-        priors['alpha'] = scipy.stats.uniform(loc=-4., scale=3.0)
+        priors['log10phi*'] = scipy.stats.uniform(loc=-5.5, scale=3.0)
+        priors['alpha'] = scipy.stats.uniform(loc=-3.2, scale=2)
         priors['D*'] = scipy.stats.uniform(loc = -23, scale = 4.0)
         # if tag == '010_z005p000':
         #     priors['log10phi*'] = scipy.stats.uniform(loc=out[0]-0.5, scale=1.)
         #     priors['alpha'] = scipy.stats.uniform(loc=out[1]-0.5, scale=1.)
         #     priors['D*'] = scipy.stats.uniform(loc=out[2]-0.5, scale=1.)
         # if tag == '006_z009p000':
-        #     priors['D*'] = scipy.stats.uniform(loc=-21., scale=0.3)
-        if tag == '006_z009p000':
-            priors['D*'] = scipy.stats.uniform(loc=-20.95, scale=0.5)
-        if tag == '005_z010p000':
-            priors['D*'] = scipy.stats.uniform(loc=-20.8, scale=0.9)
+        #     priors['D*'] = scipy.stats.uniform(loc=-20.95, scale=0.6)
+        # if tag == '005_z010p000':
+        #     priors['D*'] = scipy.stats.uniform(loc=-20.5, scale=0.8)
 
 
     elif model == 'DPL':
         model = models.DPL_Mags()
         folder = 'fit_DPL'
-        priors['log10phi*'] = scipy.stats.uniform(loc=-6, scale=3.0)
-        priors['alpha_1'] = scipy.stats.uniform(loc=-3.5, scale=1.6)
-        priors['alpha_2'] = scipy.stats.uniform(loc=-5.2, scale=2)
-        priors['D*'] = scipy.stats.uniform(loc = -23, scale = 3)
-        if tag == '006_z009p000':
-            priors['D*'] = scipy.stats.uniform(loc = -21.0, scale = 1.3)
-        if tag == '005_z010p000':
-            priors['D*'] = scipy.stats.uniform(loc = -20.8, scale = 1.3)
+        priors['log10phi*'] = scipy.stats.uniform(loc=-5.5, scale=3.0)
+        priors['alpha_1'] = scipy.stats.uniform(loc=-3.5, scale=2.)
+        priors['alpha_2'] = scipy.stats.uniform(loc=-5.3, scale=3.)
+        priors['D*'] = scipy.stats.uniform(loc = -23, scale = 4.)
+        # if tag == '006_z009p000':
+        #     priors['D*'] = scipy.stats.uniform(loc = -21.0, scale = 1.3)
+        # if tag == '005_z010p000':
+        #     priors['D*'] = scipy.stats.uniform(loc = -20.8, scale = 1.3)
     else:
         raise ValueError("Model not recognized")
 
 
     fitter = fitDF.fitter(obs, model=model, priors=priors, output_directory=folder)
     fitter.lnlikelihood = fitter.gaussian_lnlikelihood
-    samples = fitter.fit(nsamples=int(8e4), burn=int(7.5e4), sample_save_ID=f'{folder}_z{int(zs[ii])}', use_autocorr=False, verbose=True)
+    samples = fitter.fit(nsamples=int(6e4), burn=int(5.5e4), sample_save_ID=f'{folder}_z{int(zs[ii])}', use_autocorr=False, verbose=True)
 
     return samples
 
@@ -105,6 +106,10 @@ def fit(ii, tag, bins, model):
     binwidth = bins[1:] - bins[:-1]
 
     out, hist_all, err = get_lum_all(tags[ii], bins = bins)
+    ok = np.where(hist_all<5)[0]
+    out[ok] = 0.
+    hist_all[ok] = 0.
+    err[ok] = 0.
 
     phi = out/(vol*binwidth)
     err = err/(vol*binwidth)
@@ -129,7 +134,7 @@ for ii, z in enumerate(zs):
         df = pd.read_csv('Magnitude_limits.txt')
         low = np.array(df[filters])[ii]
 
-        bins = -np.arange(-low, 25, 0.5)[::-1]
+        bins = -np.arange(-low, 26, 0.5)[::-1]
 
         fit(ii, tags[ii], bins, model)
 
@@ -150,7 +155,7 @@ if rank == 0:
     for ii, z in enumerate(zs):
         df = pd.read_csv('Magnitude_limits.txt')
         low = np.array(df[filters])[ii]
-        bins = -np.arange(-low, 25, 0.5)[::-1]
+        bins = -np.arange(-low, 26, 0.5)[::-1]
         bincen = (bins[1:]+bins[:-1])/2.
         binwidth = bins[1:] - bins[:-1]
         parent_volume = (3200)**3
@@ -167,6 +172,7 @@ if rank == 0:
         y_up =  np.log10(Msim+yerr)-np.log10(Msim)
         y_lo[mask] = 4.
 
+
         observed = Msim*(binwidth*parent_volume)
         sigma = observed/np.sqrt(hist)
 
@@ -176,7 +182,7 @@ if rank == 0:
         axs.plot(bincen, yy, lw = 2, ls = 'solid', color=s_m.to_rgba(ii+0.5))
 
     axs.grid(True, alpha=0.6)
-    axs.set_xlim(-17, -24.5)
+    axs.set_xlim(-16.7, -25.2)
     axs.set_ylim(-9, -1.9)
     axs.set_ylabel(r'$\mathrm{log}_{10}(\Phi/(\mathrm{cMpc}^{-3}\mathrm{Mag}^{-1}))$', fontsize=22)
     axs.set_xlabel(r'$\mathrm{M}_{1500}$', fontsize=22)

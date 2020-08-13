@@ -1,3 +1,9 @@
+"""
+
+Get the completeness limit as a function of luminosity percentile
+
+"""
+
 import numpy as np
 import pandas as pd
 import h5py
@@ -20,18 +26,18 @@ def get_data(ii, tag, inp='FLARES', filter = 'FUV', Luminosity = 'DustModelI'):
         if len(num) == 1:
             num =  '0'+num
 
-        filename = './data/flares.hdf5'
+        filename = rF"../flares_pipeline/data3/FLARES_{num}_sp_info.hdf5"#'./data/flares.hdf5'
 
     with h5py.File(filename,'r') as hf:
-        glen = np.array(hf[F"{num}/{tag}/Galaxy/G_Length"])
-        slen = np.array(hf[F"{num}/{tag}/Galaxy/S_Length"])
+        glen = np.array(hf[F"{tag}/Galaxy/G_Length"])
+        slen = np.array(hf[F"{tag}/Galaxy/S_Length"])
 
         if np.isscalar(filter):
-            lum = np.array(hf[F"{num}/{tag}/Galaxy/BPASS_2.2.1/Chabrier300/Luminosity/{Luminosity}/{filter[8:]}"])
+            lum = np.array(hf[F"{tag}/Galaxy/BPASS_2.2.1/Chabrier300/Luminosity/{Luminosity}/{filter[8:]}"])
         else:
             lum = np.zeros((len(glen), len(filter)))
             for ii, jj in enumerate(filter):
-                lum[:,ii] = np.array(hf[F"{num}/{tag}/Galaxy/BPASS_2.2.1/Chabrier300/Luminosity/{Luminosity}/{jj[8:]}"])
+                lum[:,ii] = np.array(hf[F"{tag}/Galaxy/BPASS_2.2.1/Chabrier300/Luminosity/{Luminosity}/{jj[8:]}"])
 
 
     return lum, glen+slen

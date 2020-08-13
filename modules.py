@@ -47,7 +47,8 @@ def get_data(ii, tag, dataset = 'Mstar_30', bins = np.arange(7.5,12,0.5), DF=Fal
 
         num = str(ii)
         if ii/10 < 1: num = '0'+num
-        sim = "./data/flares.hdf5"
+        #sim = "./data2/flares.hdf5"
+        sim = rF"../data/flares.hdf5"
         num = num+'/'
 
     else:
@@ -57,10 +58,10 @@ def get_data(ii, tag, dataset = 'Mstar_30', bins = np.arange(7.5,12,0.5), DF=Fal
 
     with h5py.File(sim, 'r') as hf:
 
-        data = np.array(hf[num+tag+'/Galaxy'].get(dataset))
+        data = np.array(hf[F'{num}{tag}/Galaxy'].get(dataset))
         if DF == True:
 
-            tmp, edges = np.histogram(np.log10(data), bins = bins)
+            tmp, edges = np.histogram(np.log10(data*1e10), bins = bins)
 
             return tmp
 
@@ -76,7 +77,7 @@ def get_lum(ii, tag, bins = np.arange(-26,-16,0.5), inp='FLARES', filter = 'FUV'
         if len(num) == 1:
             num =  '0'+num
 
-        filename = './data/flares.hdf5'
+        filename = rF"./data/flares.hdf5"
         num = num+'/'
 
     else:
@@ -86,7 +87,7 @@ def get_lum(ii, tag, bins = np.arange(-26,-16,0.5), inp='FLARES', filter = 'FUV'
 
     with h5py.File(filename,'r') as hf:
 
-        lum = np.array(hf[F"{num}{tag}/Galaxy/BPASS_2.2.1/Chabrier300/Luminosity/{Luminosity}/{filter}"])
+        lum = np.array(hf[F"{num}/{tag}/Galaxy/BPASS_2.2.1/Chabrier300/Luminosity/{Luminosity}/{filter}"])
 
     if LF == True:
 
@@ -106,7 +107,7 @@ def get_line(ii, tag, line = 'HI6563', inp = 'FLARES', LF = False, bins = np.ara
         if len(num) == 1:
             num =  '0'+num
 
-        filename = './data/flares.hdf5'
+        filename = rF"../data/flares.hdf5"#'./data/flares.hdf5'
         num = num+'/'
 
     else:
@@ -176,7 +177,7 @@ def get_lum_all(tag, bins = np.arange(-25, -16, 0.5), inp = 'FLARES', LF = True,
         sims = np.arange(0,len(weights))
 
         calc = partial(get_lum, tag = tag, bins = bins, inp = inp, LF = LF, filter = filter, Luminosity = Luminosity)
-        # poiss_lims = partial(models.poisson_confidence_interval, p = 0.68)
+        #poiss_lims = partial(models.poisson_confidence_interval, p = 0.68)
 
         pool = schwimmbad.MultiPool(processes=12)
         dat = np.array(list(pool.map(calc, sims)))
@@ -186,17 +187,19 @@ def get_lum_all(tag, bins = np.arange(-25, -16, 0.5), inp = 'FLARES', LF = True,
             hist = np.sum(dat, axis = 0)
             out = np.zeros(len(bins)-1)
             err = np.zeros(len(bins)-1)
-            # out_up = np.zeros(len(bins)-1)
-            # out_low = np.zeros(len(bins)-1)
+            out_up = np.zeros(len(bins)-1)
+            out_low = np.zeros(len(bins)-1)
             for ii, sim in enumerate(sims):
                 out+=dat[ii]*weights[ii]
                 err+=np.square(np.sqrt(dat[ii])*weights[ii])
-                #
-                # tmp = np.array(list(pool.map(poiss_lims, dat[ii])))*weights[ii]
-                # out_low+=tmp[:,0]
-                # out_up+=tmp[:,1]
 
-            return out, hist, np.sqrt(err)#out_low, out_up #np.sqrt(err)
+                # pool = schwimmbad.MultiPool(processes=12)
+                # tmp = np.array(list(pool.map(poiss_lims, dat[ii])))
+                # pool.close()
+                # out_low+=np.square((dat[ii]-tmp[:,0])*weights[ii])
+                # out_up+=np.square((tmp[:,1]-dat[ii])*weights[ii])
+
+            return out, hist, np.sqrt(err)#, np.sqrt(out_low), np.sqrt(out_up) #np.sqrt(err)
 
         else: return dat
 
@@ -295,6 +298,8 @@ def get_fit_params(model, z):
     print ('84 percentile:', fit84)
     print ('16 percentile:', fit16)
 
+    # np.savez(F'fit_{model}_{z}', median_fit=median_fit, fit84=fit84, fit16=fit16)
+
     return median_fit, fit84, fit16
 
 def BIC_value(model, observed, sigma, bins, median_fit):
@@ -304,10 +309,12 @@ def BIC_value(model, observed, sigma, bins, median_fit):
         func = models.DPL_Mags(sp=median_fit)
 
     parent_volume = (3200)**3
+
     expected = func.N(parent_volume, bins)
     s = np.logical_and(observed>0, expected>0)
-
-    lnlike = -0.5 * np.sum((observed[s] - expected[s]) ** 2 / sigma[s]**2 + np.log(sigma[s]**2))
+    binwidth = bins[1:] - bins[:-1]
+    sig = sigma[s]/(parent_volume*binwidth[s])
+    lnlike = -0.5 * np.sum((observed[s]/(parent_volume*binwidth[s]) - expected[s]/(parent_volume*binwidth[s])) ** 2 / sig**2 + np.log(sig**2))
     k = len(median_fit)
 
     BIC = k*np.log(np.sum(s)) - 2*lnlike

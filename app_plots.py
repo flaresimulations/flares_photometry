@@ -1,3 +1,10 @@
+"""
+
+Plots in the Appendices
+
+"""
+
+
 import numpy as np
 import pandas as pd
 from functools import partial
@@ -42,18 +49,18 @@ def get_all(dataset, tag):
 
 
 
-plt_options = ['BC_plot_beta', 'BC_plot_EW', 'beta_Extcurves', 'EW_Extcurves' 'Att_Extcurves']
-kappa_BCs =     [0.001,  0.1,  0.25,   0.5,    1.,  1.25,  1.5,  1.75,    2.,   2.25, 2.5, 2.75, 3.]
+plt_options = ['BC_plot_beta', 'BC_plot_EW', 'beta_Extcurves', 'EW_Extcurves', 'Att_Extcurves']
+kappa_BCs =     [0.0, 0.001,  0.1,  0.25,   0.5,  0.75,  1.,  1.25,  1.5,  1.75,    2.]
 kappa_ISMs =  [0.1925,0.0775,0.0475,0.0175,0.0075,0.0063,0.005,0.0075,0.0025,0.0025,0.0025,0.005,0.005]
 
 input = int(sys.argv[1])
 
 if input%2!=1:
     tag = '010_z005p000'
-    fig, axs = plt.subplots(nrows = 1, ncols = 1, figsize=(7.5, 6), sharex=False, sharey=False, facecolor='w', edgecolor='k')
+
 else:
     tag = '007_z008p000'
-    fig, axs = plt.subplots(nrows = 1, ncols = 3, figsize=(13, 4), sharex=False, sharey=False, facecolor='w', edgecolor='k')
+
 
 # choose a colormap
 if input<2:
@@ -74,6 +81,7 @@ conversion_fac = 2E15  #converting from ergs/s/Hz to ergs/s at FUV
 
 
 if input == 0:
+    fig, axs = plt.subplots(nrows = 1, ncols = 1, figsize=(6, 4), sharex=False, sharey=False, facecolor='w', edgecolor='k')
 
     for ii, kappa_BC in enumerate(kappa_BCs):
         xlims = [-16.9, -24.7]
@@ -89,7 +97,7 @@ if input == 0:
             w = np.array([])
             with h5py.File(f'data1/flares.hdf5', 'r') as hf:
                 for sim in hf.keys():
-                    tmp = np.array(hf[f'{sim}/{tag}/Galaxy/BPASS_2.2.1/Chabrier300/Luminosity/DustModelI_BC{kappa_BC}/{f}'])
+                    tmp = np.array(hf[f'{sim}/{tag}/Galaxy/BPASS_2.2.1/Chabrier300/Luminosity/DustModelI_{kappa_BC}/{f}'])
                     L[f] = np.hstack((L[f], tmp))
                     w = np.append(w, np.ones(len(tmp))*weights[int(sim)])
 
@@ -114,13 +122,14 @@ if input == 0:
     axs.tick_params(axis='y', which='minor', direction='in')
     axs.grid(True, alpha = 0.5)
     for label in (axs.get_xticklabels()+axs.get_yticklabels()):
-        label.set_fontsize(14)
+        label.set_fontsize(12)
     axs.set_ylabel(r'$\beta$', fontsize=16)
     axs.set_xlabel(r'M$_{1500}$', fontsize=16)
-    axs.legend(frameon=False, fontsize=14, ncol=3)
+    axs.legend(frameon=False, fontsize=11, ncol=3)
 
 
 elif input == 1:
+    fig, axs = plt.subplots(nrows = 1, ncols = 3, figsize=(13, 3), sharex=False, sharey=False, facecolor='w', edgecolor='k')
 
     mstar = get_data_all(tag, dataset = 'Mstar_30', DF=False)
     z = 8
@@ -131,18 +140,18 @@ elif input == 1:
     mstar = np.concatenate(mstar)
 
     for ii, kappa_BC in enumerate(kappa_BCs):
-        OIII4959_lum = np.concatenate(get_all(F'BPASS_2.2.1/Chabrier300/Lines/DustModelI{kappa_BC}/OIII4959/Luminosity', tag))
-        OIII4959_EW = np.concatenate(get_all(F'BPASS_2.2.1/Chabrier300/Lines/DustModelI{kappa_BC}/OIII4959/EW', tag))
+        OIII4959_lum = np.concatenate(get_all(F'BPASS_2.2.1/Chabrier300/Lines/DustModelI_{kappa_BC}/OIII4959/Luminosity', tag))
+        OIII4959_EW = np.concatenate(get_all(F'BPASS_2.2.1/Chabrier300/Lines/DustModelI_{kappa_BC}/OIII4959/EW', tag))
 
-        OIII5007_lum = np.concatenate(get_all(F'BPASS_2.2.1/Chabrier300/Lines/DustModelI{kappa_BC}/OIII5007/Luminosity', tag))
-        OIII5007_EW = np.concatenate(get_all(F'BPASS_2.2.1/Chabrier300/Lines/DustModelI{kappa_BC}/OIII5007/EW', tag))
+        OIII5007_lum = np.concatenate(get_all(F'BPASS_2.2.1/Chabrier300/Lines/DustModelI_{kappa_BC}/OIII5007/Luminosity', tag))
+        OIII5007_EW = np.concatenate(get_all(F'BPASS_2.2.1/Chabrier300/Lines/DustModelI_{kappa_BC}/OIII5007/EW', tag))
 
-        Hbeta_lum = np.concatenate(get_all(F'BPASS_2.2.1/Chabrier300/Lines/DustModelI{kappa_BC}/HI4861/Luminosity', tag))
-        Hbeta_EW = np.concatenate(get_all(F'BPASS_2.2.1/Chabrier300/Lines/DustModelI{kappa_BC}/HI4861/EW', tag))
+        Hbeta_lum = np.concatenate(get_all(F'BPASS_2.2.1/Chabrier300/Lines/DustModelI_{kappa_BC}/HI4861/Luminosity', tag))
+        Hbeta_EW = np.concatenate(get_all(F'BPASS_2.2.1/Chabrier300/Lines/DustModelI_{kappa_BC}/HI4861/EW', tag))
 
-        l_fuvs = np.concatenate(get_all(F'BPASS_2.2.1/Chabrier300/Luminosity/DustModelI{kappa_BC}/FUV', tag))
+        l_fuvs = np.concatenate(get_all(F'BPASS_2.2.1/Chabrier300/Luminosity/DustModelI_{kappa_BC}/FUV', tag))
 
-        x, y, w = np.log10(mstar), OIII4959_EW+OIII5007_EW+Hbeta_EW, ws
+        x, y, w = np.log10(mstar*1e10), OIII4959_EW+OIII5007_EW+Hbeta_EW, ws
         thisok = np.where(y>0)
         x = x[thisok]
         y = np.log10(y[thisok])
@@ -241,20 +250,22 @@ elif input == 1:
     labels = labels[:-4]
 
     axs[0].legend(lines[0:6], list(labels)[0:6], frameon=False, fontsize=11, numpoints=1, ncol=2)
-    axs[1].legend(lines[6:13], list(labels)[6:13], frameon=False, fontsize=11, numpoints=1, ncol=2)
+    axs[1].legend(lines[6:11], list(labels)[6:11], frameon=False, fontsize=11, numpoints=1, ncol=2)
     axs[2].legend(lines[-2:], list(labels)[-2:], frameon=False, fontsize=11, numpoints=1, ncol=1, loc='lower right')
 
     fig.subplots_adjust(bottom=0.11, left = 0.05, wspace = 0.3, hspace=0)
 
 
 elif input == 2:
+    fig, axs = plt.subplots(nrows = 1, ncols = 1, figsize=(5, 3), sharex=False, sharey=False, facecolor='w', edgecolor='k')
+
     xlims = [-16.9, -24.7]
-    ylims = [-2.6,-1.4]
+    ylims = [-2.8,-1.5]
     bins = -np.arange(16.8, 25, 0.4)[::-1]
     bincen = (bins[1:]+bins[:-1])/2.
     binwidth = bins[1:] - bins[:-1]
 
-    ext_curves = ['Default', 'Calzetti', 'SMC', 'N18']
+    ext_curves = ['Default', 'Calzetti_1.0', 'SMC_1.0', 'N18_1.0']
     labels = ['Default', 'Calzetti', 'SMC', 'N18']
     colors = ['black', 'brown', 'grey', 'orange']
 
@@ -264,7 +275,7 @@ elif input == 2:
             dataset = 'Galaxy/BPASS_2.2.1/Chabrier300/Luminosity/DustModelI'
         else:
             datafolder = 'data1/flares.hdf5'
-            dataset = F'Galaxy/BPASS_2.2.1/Chabrier300/Luminosity/DustModelI{jj}'
+            dataset = F'Galaxy/BPASS_2.2.1/Chabrier300/Luminosity/DustModelI_{jj}'
 
         L = {}
         for f in ['FUV','NUV']:
@@ -298,18 +309,21 @@ elif input == 2:
     axs.tick_params(axis='x', which='minor', direction='in')
     axs.tick_params(axis='y', which='minor', direction='in')
     axs.grid(True, alpha = 0.5)
-    axs.legend(frameon=False,fontsize=14,loc=4, ncol=2)
+    axs.legend(frameon=False,fontsize=11,loc=4, ncol=2)
     for label in (axs.get_xticklabels()+axs.get_yticklabels()):
-        label.set_fontsize(14)
-    axs.set_ylabel(r'$\beta$', fontsize=16)
-    axs.set_xlabel(r'M$_{1500}$', fontsize=16)
+        label.set_fontsize(12)
+    axs.set_ylabel(r'$\beta$', fontsize=15)
+    axs.set_xlabel(r'M$_{1500}$', fontsize=15)
 
 elif input == 3:
+    fig, axs = plt.subplots(nrows = 1, ncols = 3, figsize=(13, 3), sharex=False, sharey=False, facecolor='w', edgecolor='k')
 
     mstar = get_data_all(tag, dataset = 'Mstar_30', DF=False)
     z = 8
 
-    ext_curves = ['Default', 'Calzetti', 'SMC', 'N18']
+    fig, axs = plt.subplots(nrows = 1, ncols = 3, figsize=(13, 2.5), sharex=False, sharey=False, facecolor='w', edgecolor='k')
+
+    ext_curves = ['Default', 'Calzetti_1.0', 'SMC_1.0', 'N18_1.0']
     labels = ['Default', 'Calzetti', 'SMC', 'N18']
     colors = ['black', 'brown', 'grey', 'orange']
 
@@ -334,18 +348,18 @@ elif input == 3:
             Hbeta_lum = np.concatenate(dat3[:,0])
             Hbeta_EW = np.concatenate(dat3[:,1])
         else:
-            OIII4959_lum = np.concatenate(get_all(F'BPASS_2.2.1/Chabrier300/Lines/DustModelI{curves}/OIII4959/Luminosity', tag))
-            OIII4959_EW = np.concatenate(get_all(F'BPASS_2.2.1/Chabrier300/Lines/DustModelI{curves}/OIII4959/EW', tag))
+            OIII4959_lum = np.concatenate(get_all(F'BPASS_2.2.1/Chabrier300/Lines/DustModelI_{curves}/OIII4959/Luminosity', tag))
+            OIII4959_EW = np.concatenate(get_all(F'BPASS_2.2.1/Chabrier300/Lines/DustModelI_{curves}/OIII4959/EW', tag))
 
-            OIII5007_lum = np.concatenate(get_all(F'BPASS_2.2.1/Chabrier300/Lines/DustModelI{curves}/OIII5007/Luminosity', tag))
-            OIII5007_EW = np.concatenate(get_all(F'BPASS_2.2.1/Chabrier300/Lines/DustModelI{curves}/OIII5007/EW', tag))
+            OIII5007_lum = np.concatenate(get_all(F'BPASS_2.2.1/Chabrier300/Lines/DustModelI_{curves}/OIII5007/Luminosity', tag))
+            OIII5007_EW = np.concatenate(get_all(F'BPASS_2.2.1/Chabrier300/Lines/DustModelI_{curves}/OIII5007/EW', tag))
 
-            Hbeta_lum = np.concatenate(get_all(F'BPASS_2.2.1/Chabrier300/Lines/DustModelI{curves}/HI4861/Luminosity', tag))
-            Hbeta_EW = np.concatenate(get_all(F'BPASS_2.2.1/Chabrier300/Lines/DustModelI{curves}/HI4861/EW', tag))
+            Hbeta_lum = np.concatenate(get_all(F'BPASS_2.2.1/Chabrier300/Lines/DustModelI_{curves}/HI4861/Luminosity', tag))
+            Hbeta_EW = np.concatenate(get_all(F'BPASS_2.2.1/Chabrier300/Lines/DustModelI_{curves}/HI4861/EW', tag))
 
-            l_fuvs = np.concatenate(get_all(F'BPASS_2.2.1/Chabrier300/Luminosity/DustModelI{curves}/FUV', tag))
+            l_fuvs = np.concatenate(get_all(F'BPASS_2.2.1/Chabrier300/Luminosity/DustModelI_{curves}/FUV', tag))
 
-        x, y, w = np.log10(mstar), OIII4959_EW+OIII5007_EW+Hbeta_EW, ws
+        x, y, w = np.log10(mstar*1e10), OIII4959_EW+OIII5007_EW+Hbeta_EW, ws
         thisok = np.where(y>0)
         x = x[thisok]
         y = np.log10(y[thisok])
@@ -444,18 +458,20 @@ elif input == 3:
     labels = labels[:-4]
 
     axs[0].legend(lines[:-2], list(labels)[:-2], frameon=False, fontsize=11, numpoints=1, ncol=2)
-    axs[1].legend(lines[-2:], list(labels)[-2:], frameon=False, fontsize=11, numpoints=1, ncol=1)
+    axs[1].legend(lines[-2:], list(labels)[-2:], frameon=False, fontsize=11, numpoints=1, ncol=1, loc=2)
 
     fig.subplots_adjust(bottom=0.11, left = 0.05, wspace = 0.3, hspace=0)
 
 elif input == 4:
+    fig, axs = plt.subplots(nrows = 1, ncols = 1, figsize=(5, 2.5), sharex=False, sharey=False, facecolor='w', edgecolor='k')
+
     xlims = [-16.9, -24.7]
     ylims = [0,3]
     bins = -np.arange(16.8, 25, 0.4)[::-1]
     bincen = (bins[1:]+bins[:-1])/2.
     binwidth = bins[1:] - bins[:-1]
 
-    ext_curves = ['Default', 'Calzetti', 'SMC', 'N18']
+    ext_curves = ['Default', 'Calzetti_1.0', 'SMC_1.0', 'N18_1.0']
     labels = ['Default', 'Calzetti', 'SMC', 'N18']
     colors = ['black', 'brown', 'grey', 'orange']
 
@@ -469,7 +485,7 @@ elif input == 4:
         if ii == 0:
             L_FUV = np.concatenate(get_lum_all(tag, LF = False, filter = 'FUV', Luminosity='DustModelI'))
         else:
-            L_FUV = np.concatenate(get_all(F'BPASS_2.2.1/Chabrier300/Luminosity/DustModelI{jj}/FUV', tag))
+            L_FUV = np.concatenate(get_all(F'BPASS_2.2.1/Chabrier300/Luminosity/DustModelI_{jj}/FUV', tag))
 
         att = -2.5*np.log10(L_FUV/L_FUV_int)
 
@@ -488,11 +504,11 @@ elif input == 4:
         axs.tick_params(axis='x', which='minor', direction='in')
         axs.tick_params(axis='y', which='minor', direction='in')
         axs.grid(True, alpha = 0.5)
-        axs.legend(frameon=False,fontsize=14, ncol=2, loc=2)
+        axs.legend(frameon=False,fontsize=10, ncol=2, loc=2)
         for label in (axs.get_xticklabels()+axs.get_yticklabels()):
-            label.set_fontsize(14)
-        axs.set_ylabel(r'A$_{\mathrm{FUV}}$=-2.5 log$_{10}$(L$_{\mathrm{FUV}}^{\mathrm{Observed}}$/L$_{\mathrm{FUV}}^{\mathrm{Intrinsic}}$)', fontsize=16)
-        axs.set_xlabel(r'M$_{1500}$(Intrinsic)', fontsize=16)
+            label.set_fontsize(10)
+        axs.set_ylabel(r'A$_{\mathrm{FUV}}$=-2.5 log$_{10}$(L$_{\mathrm{FUV}}^{\mathrm{Observed}}$/L$_{\mathrm{FUV}}^{\mathrm{Intrinsic}}$)', fontsize=11)
+        axs.set_xlabel(r'M$_{1500}$(Intrinsic)', fontsize=11)
 
 fig.savefig(F'App_{plt_options[input]}.pdf', dpi = 300, bbox_inches='tight')
 plt.show()

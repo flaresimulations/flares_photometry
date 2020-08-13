@@ -9,7 +9,7 @@ def plot_UVLF_Fink15(z, axs):
     phi_up = np.log10(phi + phi_up) - np.log10(phi)
     phi_low = np.log10(phi) - np.log10(phi - phi_low)
 
-    axs.errorbar(M, np.log10(phi), yerr=[phi_low, phi_up], uplims=uplims, label='Finkelstein 2015', ls='None', fmt='s', color='grey', alpha=0.8)
+    axs.errorbar(M, np.log10(phi), yerr=[phi_low, phi_up], uplims=uplims, label='Finkelstein+2015', ls='None', fmt='s', color='grey', alpha=0.8)
 
 
 def plot_UVLF_Bouw15(z, axs):
@@ -19,7 +19,7 @@ def plot_UVLF_Bouw15(z, axs):
     phi_up = np.log10(phi + phi_err) - np.log10(phi)
     phi_low = np.log10(phi) - np.log10(phi - phi_err)
 
-    axs.errorbar(M, np.log10(phi), yerr=[phi_low, phi_up], uplims=uplims, label='Bouwens 2015', ls='None', fmt='D', color='black', alpha = 0.4)
+    axs.errorbar(M, np.log10(phi), yerr=[phi_low, phi_up], uplims=uplims, label='Bouwens+2015', ls='None', fmt='D', color='black', alpha = 0.4)
 
 def plot_UVLF_Bouw16(z, axs):
 
@@ -28,7 +28,7 @@ def plot_UVLF_Bouw16(z, axs):
     phi_up = np.log10(phi + phi_up) - np.log10(phi)
     phi_low = np.log10(phi) - np.log10(phi - phi_low)
 
-    axs.errorbar(M, np.log10(phi), yerr=[phi_low, phi_up], uplims=uplims, label='Bouwens 2016', ls='None', fmt='^', color='black', alpha=0.4, markersize=7)
+    axs.errorbar(M, np.log10(phi), yerr=[phi_low, phi_up], uplims=uplims, label='Bouwens+2016', ls='None', fmt='^', color='black', alpha=0.4, markersize=7)
 
 def plot_UVLF_Bouw17(z, axs):
 
@@ -37,7 +37,7 @@ def plot_UVLF_Bouw17(z, axs):
     phi_up = np.log10(phi + phi_up) - np.log10(phi)
     phi_low = np.log10(phi) - np.log10(phi - phi_low)
 
-    axs.errorbar(M, np.log10(phi), yerr=[phi_low, phi_up], uplims=uplims, label='Bouwens 2017', ls='None', fmt='8', color='black', alpha=0.4)
+    axs.errorbar(M, np.log10(phi), yerr=[phi_low, phi_up], uplims=uplims, label='Bouwens+2017', ls='None', fmt='8', color='black', alpha=0.4)
 
 def plot_UVLF_Stefanon19(z, axs):
 
@@ -46,16 +46,16 @@ def plot_UVLF_Stefanon19(z, axs):
     phi_up = np.log10(phi + phi_up) - np.log10(phi)
     phi_low = np.log10(phi) - np.log10(phi - phi_low)
 
-    axs.errorbar(M, np.log10(phi), yerr=[phi_low, phi_up], label='Stefanon 2019', ls='None', fmt='p', color='black', alpha=0.4, markersize=7)
+    axs.errorbar(M, np.log10(phi), yerr=[phi_low, phi_up], label='Stefanon+2019', ls='None', fmt='p', color='black', alpha=0.4, markersize=7)
 
-def plot_UVLF_Bowler19(z, axs):
+def plot_UVLF_Bowler20(z, axs):
 
-    data = np.genfromtxt(f"./Obs_data/uv_lum_Bowler19_z{z}.txt", delimiter=',', skip_header=1)
+    data = np.genfromtxt(f"./Obs_data/uv_lum_Bowler20_z{z}.txt", delimiter=',', skip_header=1)
     M, M_err, phi, phi_err, uplims = data[:,0], data[:,1], data[:,2]*1e-6, data[:,3]*1e-6, data[:,4]
     phi_up = np.log10(phi + phi_err) - np.log10(phi)
     phi_low = np.log10(phi) - np.log10(phi - phi_err)
 
-    axs.errorbar(M, np.log10(phi), xerr=M_err, yerr=[phi_low, phi_up], uplims=uplims, label='Bowler 2019', ls='None', fmt='D', color='grey', alpha=0.8, markersize=7)
+    axs.errorbar(M, np.log10(phi), xerr=M_err, yerr=[phi_low, phi_up], uplims=uplims, label='Bowler+2020', ls='None', fmt='D', color='grey', alpha=0.8, markersize=7)
 
 
 def plot_UVLF(z, axs):
@@ -74,7 +74,7 @@ def plot_UVLF(z, axs):
 
         data = np.genfromtxt("./Obs_data/uv_lum_Atek18_z6.txt", delimiter=',', skip_header=1)
         M, phi, phi_err = data[:,0], data[:,1], data[:,2]
-        axs.errorbar(M, phi, yerr=phi_err, label='Atek 2018', ls='None', fmt='<', color='grey', alpha=0.8, markersize=7)
+        axs.errorbar(M, phi, yerr=phi_err, label='Atek+2018', ls='None', fmt='<', color='grey', alpha=0.8, markersize=7)
 
     if z == 7:
 
@@ -86,7 +86,7 @@ def plot_UVLF(z, axs):
         plot_UVLF_Fink15(z, axs)
         plot_UVLF_Bouw15(z, axs)
         plot_UVLF_Stefanon19(z, axs)
-        plot_UVLF_Bowler19(z, axs)
+        plot_UVLF_Bowler20(z, axs)
 
     if z == 9:
 
@@ -95,11 +95,11 @@ def plot_UVLF(z, axs):
         phi_up, phi_low = np.absolute(phi_up-phi), np.absolute(phi-phi_low)
         M_up, M_low = np.absolute(M_up-M), np.absolute(M-M_low)
 
-        axs.errorbar(M, phi, xerr=[M_low, M_up], yerr=[phi_low, phi_up], label='McLeod 2015', ls='None', fmt='>', color='grey', alpha=0.8, markersize=7)
+        axs.errorbar(M, phi, xerr=[M_low, M_up], yerr=[phi_low, phi_up], label='McLeod+2015', ls='None', fmt='>', color='grey', alpha=0.8, markersize=7)
 
         plot_UVLF_Bouw16(z, axs)
         plot_UVLF_Stefanon19(z, axs)
-        plot_UVLF_Bowler19(z, axs)
+        plot_UVLF_Bowler20(z, axs)
 
     if z == 10:
 
@@ -111,7 +111,7 @@ def plot_UVLF(z, axs):
         phi_up = np.log10(phi + phi_up) - np.log10(phi)
         phi_low = np.log10(phi) - np.log10(phi - phi_low)
 
-        axs.errorbar(M, np.log10(phi), yerr=[phi_low, phi_up], uplims=uplims, label='Oesch 2018', ls='None', fmt='H', color = 'black', alpha = 0.5, markersize=6)
+        axs.errorbar(M, np.log10(phi), yerr=[phi_low, phi_up], uplims=uplims, label='Oesch+2018', ls='None', fmt='H', color = 'black', alpha = 0.5, markersize=6)
 
 
 
@@ -122,7 +122,7 @@ def plot_beta_Bouw12(z, axs):
     ok = np.where(sys_err > ran_err)
     ran_err[ok] = sys_err[ok]
 
-    axs.errorbar(M, beta, yerr=ran_err, label='Bouwens 2012', ls='None', fmt='s', color='blue', alpha=0.5)
+    axs.errorbar(M, beta, yerr=ran_err, label='Bouwens+2012', ls='None', fmt='s', color='blue', alpha=0.5)
 
 def plot_beta_Bouw14(z, axs):
 
@@ -131,7 +131,7 @@ def plot_beta_Bouw14(z, axs):
     ok = np.where(sys_err > ran_err)
     ran_err[ok] = sys_err[ok]
 
-    axs.errorbar(M, beta, yerr=ran_err, label='Bouwens 2014', ls='None', fmt='D', color='blue', alpha=0.5)
+    axs.errorbar(M, beta, yerr=ran_err, label='Bouwens+2014', ls='None', fmt='D', color='blue', alpha=0.5)
 
 def plot_beta_Dunlop12(z, axs):
 
@@ -139,7 +139,7 @@ def plot_beta_Dunlop12(z, axs):
     M, beta, beta_err = data[:,0], data[:,1], data[:,2]
 
 
-    axs.errorbar(M, beta, yerr=beta_err, label='Dunlop 2012', ls='None', fmt='s', color='green', alpha=0.5)
+    axs.errorbar(M, beta, yerr=beta_err, label='Dunlop+2012', ls='None', fmt='s', color='green', alpha=0.5)
 
 
 def plot_beta(z, axs):
@@ -170,7 +170,7 @@ def plot_OIIIEW_Mstar(z, axs, errorbar=True):
         logEW = np.log10(EW)
         maxEW, minEW = np.nanmedian(maxEW-logEW), np.nanmedian(logEW-minEW)
 
-        label = 'Endsley 2020'
+        label = 'Endsley+2020'
         c = 'orange'
 
     elif z == 8:
@@ -185,7 +185,7 @@ def plot_OIIIEW_Mstar(z, axs, errorbar=True):
         Mstar, maxMstar, minMstar = np.log10(obs[2]), np.log10(obs[4]), np.log10(obs[3])
         maxMstar, minMstar = np.nanmedian(maxMstar-Mstar), np.nanmedian(Mstar-minMstar)
 
-        label = 'de Barros 2019'
+        label = 'de Barros+2019'
         c = 'indianred'
 
 
@@ -225,7 +225,7 @@ def plot_OIIIEW_UV(z, axs, errorbar=True):
         logEW = np.log10(EW)
         maxEW, minEW = np.nanmedian(maxEW-logEW), np.nanmedian(logEW-minEW)
 
-        label = 'Endsley 2020'
+        label = 'Endsley+2020'
         c = 'orange'
 
 
@@ -250,7 +250,7 @@ def plot_OIIIEW_UV(z, axs, errorbar=True):
         maxLUV = np.nanmedian(up-LUV)
         minLUV = np.nanmedian(LUV-low)
 
-        label = 'de Barros 2019'
+        label = 'de Barros+2019'
         c = 'indianred'
 
 
@@ -292,7 +292,7 @@ def plot_OIIIlum_UV(z, axs, errorbar=True):
         maxR = np.nanmedian(np.sqrt((Llines_up-Llines)**2 + (up-LUV)**2))
         minR = np.nanmedian(np.sqrt((Llines-Llines_low)**2 + (LUV-low)**2))
 
-        axs.scatter(LUV, R, s=5, c=c, label = 'de Barros 2019 individual')
+        axs.scatter(LUV, R, s=5, c=c, label = 'de Barros+2019 individual')
         xx, yy, yy16, yy84 = np.array([]), np.array([]), np.array([]), np.array([])
         for jj in range(len(bincen)):
             thisok = np.logical_and(LUV >= bins[jj], LUV < bins[jj+1])
@@ -303,6 +303,6 @@ def plot_OIIIlum_UV(z, axs, errorbar=True):
                 yy84 = np.append(yy84, np.percentile(R[thisok], 84))
                 yy16 = np.append(yy16, np.percentile(R[thisok], 16))
 
-        axs.errorbar(xx, yy, yerr=[yy-yy16, yy84-yy], c=c, ls='None', fmt='o', markeredgecolor='k', label='de Barros 2019 binned')
+        axs.errorbar(xx, yy, yerr=[yy-yy16, yy84-yy], c=c, ls='None', fmt='o', markeredgecolor='k', label='de Barros 2019+binned')
         if errorbar:
             axs.errorbar(45.3, -2, xerr=[[minLUV], [maxLUV]], yerr=[[minR], [maxR]], c=c, ls='None', fmt='x', markeredgecolor='k')

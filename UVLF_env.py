@@ -1,3 +1,12 @@
+"""
+
+    Plots the environmental dependence of observables:
+    0 - UVLF as a function of environment (Figure 11)
+    1 - Attenuation as a function of environment
+    2 - UV continuum slope as a function of environment
+
+"""
+
 import numpy as np
 import pandas as pd
 import h5py, sys
@@ -10,11 +19,11 @@ from astropy import units as u
 from modules import get_lum, get_lum_all
 from FLARE.photom import lum_to_M, M_to_lum
 import flares as fl
+from plot_obs import plot_beta
 
 import seaborn as sns
 sns.set_context("paper")
 
-##fac = 0.1225##
 h = 0.6777
 
 rho_crit = (cosmo.critical_density(5).to(u.Msun/u.Mpc**3)).value
@@ -29,17 +38,15 @@ filter = 'FUV'
 tags = ['010_z005p000', '009_z006p000', '008_z007p000', '007_z008p000', '006_z009p000', '005_z010p000']
 tags_ref = ['008_z005p037', '006_z005p971', '005_z007p050', '004_z008p075', '003_z008p988', '002_z009p993']
 
-# tags = ['010_z005p000', '008_z007p000', '006_z009p000']
-# tags_ref = ['008_z005p037', '005_z007p050', '003_z008p988']
-
 arr = np.arange(0,40)
 density = np.array([-0.3, 0.3])
 zs = [5., 6., 7., 8., 9., 10.]
 
-norm = matplotlib.colors.Normalize(vmin=min(density), vmax=max(density))
-dbins = np.arange(-0.3, 0.4, 0.1)
 # choose a colormap
 c_m = matplotlib.cm.plasma
+norm = matplotlib.colors.BoundaryNorm(np.arange(-0.3,0.4,0.1), c_m.N)
+dbins = np.arange(-0.3, 0.4, 0.1)
+
 
 # create a ScalarMappable and initialize a data structure
 s_m = matplotlib.cm.ScalarMappable(cmap=c_m, norm=norm)
@@ -48,9 +55,9 @@ s_m.set_array([])
 df = pd.read_csv('./weight_files/weights_grid.txt')
 delta = np.array(df['log(1+delta)'])
 
-fig, axs = plt.subplots(nrows = 2, ncols = 3, figsize=(14, 9), sharex=True, sharey=True, facecolor='w', edgecolor='k')
+fig, axs = plt.subplots(nrows = 2, ncols = 3, figsize=(12, 5), sharex=True, sharey=True, facecolor='w', edgecolor='k')
 axs = axs.ravel()
-plt_options = ['UVLF_env', 'att_env']
+plt_options = ['UVLF_env', 'att_env', 'beta_env']
 input = plt_options[int(sys.argv[1])]
 
 #
@@ -93,6 +100,15 @@ for ii, jj in enumerate(tags):
         savename='att_env_obs.pdf'
         axs[ii].text(-21.3, 3.2, r'$z = {}$'.format(zs[ii]), fontsize = 13)
 
+    if input == plt_options[2]:
+        LFUV = get_lum_all(jj, LF = False, filter = 'FUV', Luminosity='DustModelI')
+        LNUV = get_lum_all(jj, LF = False, filter = 'NUV', Luminosity='DustModelI')
+        xlabel = r'M$_{1500}$'#\mathrm{(Intrinsic)}$'
+        ylabel = r'$\beta$'
+        ylim = [-2.7,-1.]
+        savename='beta_env_obs.pdf'
+        axs[ii].text(-20.1, -2.6, r'$z = {}$'.format(zs[ii]), fontsize = 13)
+
     for kk in range(len(dbins)-1):
 
         ok = np.where(np.logical_and(delta >= dbins[kk], delta < dbins[kk+1]))[0]
@@ -107,7 +123,7 @@ for ii, jj in enumerate(tags):
             nonzero = np.where(mhist>0)[0]
             axs[ii].errorbar(bincen[nonzero], np.log10(yy[nonzero]), lw=2, ls='solid', marker='o', yerr=[np.log10(yy[nonzero]) - np.log10(yy[nonzero]-yyerr[nonzero]), np.log10(yy[nonzero]+yyerr[nonzero]) - np.log10(yy[nonzero])], color=s_m.to_rgba((dbins[kk]+dbins[kk+1])/2))
 
-        else:
+        elif input == plt_options[1]:
             LFUV_this = np.concatenate(LFUV[ok])
             LFUV_int_this = np.concatenate(LFUV_int[ok])
             y = -2.5*np.log10(LFUV_this/LFUV_int_this)
@@ -117,7 +133,20 @@ for ii, jj in enumerate(tags):
             hist, binedges = np.histogram(x, bins)
             tok = np.where(hist>0)[0]
 
-            axs[ii].errorbar(bincen[tok], out[:,1][tok], lw=2, ls='solid', marker='o', yerr=[out[:,1][tok] - out[:,0][tok], out[:,2][tok]-out[:,0][tok]], color=s_m.to_rgba((dbins[kk]+dbins[kk+1])/2))
+            axs[ii].errorbar(bincen[tok], out[:,1][tok], lw=2, ls='solid', marker='o', yerr=[out[:,1][tok] - out[:,2][tok], out[:,0][tok]-out[:,1][tok]], color=s_m.to_rgba((dbins[kk]+dbins[kk+1])/2))
+            axs[ii].set_xlim((-16.9, -24.7))
+
+        else:
+            x = lum_to_M(np.concatenate(LFUV[ok]))
+            y = np.log10(np.concatenate(LFUV[ok])/np.concatenate(LNUV[ok]))/np.log10(1500./2500.) - 2.0
+            quantiles = [0.84,0.50,0.16]
+            out = fl.binned_weighted_quantile(x, y, np.ones(len(x)), bins, quantiles)
+            hist, binedges = np.histogram(x, bins)
+            tok = np.where(hist>0)[0]
+
+            axs[ii].errorbar(bincen[tok], out[:,1][tok], lw=2, ls='solid', marker='o', yerr=[out[:,1][tok] - out[:,2][tok], out[:,0][tok]-out[:,1][tok]], color=s_m.to_rgba((dbins[kk]+dbins[kk+1])/2))
+            axs[ii].set_xlim((-16.9, -24.7))
+            plot_beta(int(zs[ii]), axs[ii])
 
     if input == plt_options[0]:
         out, hist, err = get_lum_all(jj, bins = bins)
@@ -134,6 +163,7 @@ for ii, jj in enumerate(tags):
         ylim=(-6.6, -1.3)
         savename = 'UVLF_env.pdf'
         axs[ii].text(-17.4, -5.4, r'$z = {}$'.format(zs[ii]), fontsize = 14)
+        axs[ii].set_xlim((-16.9,-24.7))
 
 
     axs[ii].grid(True, alpha = 0.4)
@@ -142,26 +172,25 @@ for ii, jj in enumerate(tags):
     axs[ii].tick_params(axis='y', which='minor', direction='in')
 
     for label in (axs[ii].get_xticklabels() + axs[ii].get_yticklabels()):
-        label.set_fontsize(14)
+        label.set_fontsize(13)
 
-    axs[ii].set_xlim(-17, -24.9)
     axs[ii].set_ylim(ylim)
 
     #axs[ii].set_ylabel(r'# galaxies/($\delta$ x $\rho_{crit}$(z) x Vol)', fontsize=20)
     #axs[ii].set_xlabel(r'M$_{FUV}$', fontsize=20)
 
-axs[4].legend(frameon=False, fontsize=14)
-cbaxes = fig.add_axes([0.93, 0.12, 0.008, 0.3])
+axs[4].legend(frameon=False, fontsize=13)
+cbaxes = fig.add_axes([0.925, 0.14, 0.007, 0.3])
 fig.colorbar(s_m, cax=cbaxes)
 cbaxes.set_ylabel(r'$\mathrm{log}_{10}(1+\delta)$', fontsize = 14)
 for label in cbaxes.get_yticklabels():
-    label.set_fontsize(14)
+    label.set_fontsize(13)
 
 
 fig.subplots_adjust(bottom=0.1, left = 0.08, right = 0.999, wspace=0, hspace=0)
 
-fig.text(0.02, 0.5, ylabel, va='center', rotation='vertical', fontsize=16)
-fig.text(0.51, 0.03, xlabel, va='center', fontsize=16)
+fig.text(0.03, 0.5, ylabel, va='center', rotation='vertical', fontsize=15)
+fig.text(0.51, 0.01, xlabel, va='center', fontsize=16)
 
 plt.savefig(savename, bbox_inches='tight')
 plt.show()

@@ -1,6 +1,6 @@
 """
 
-Comparing GSMF for all redshifts and all simulations
+Comparing GSMF for all redshifts and all simulations; Figure 1
 
 """
 
@@ -28,7 +28,7 @@ zs = [5., 6., 7., 8., 9., 10.]
 tags = ['010_z005p000', '009_z006p000', '008_z007p000', '007_z008p000', '006_z009p000', '005_z010p000']
 tags_ref = ['008_z005p037', '006_z005p971', '005_z007p050', '004_z008p075', '003_z008p988', '002_z009p993']
 
-fig, axs = plt.subplots(nrows = 2, ncols = 3, figsize=(14, 9), sharex=True, sharey=True, facecolor='w', edgecolor='k')
+fig, axs = plt.subplots(nrows = 2, ncols = 3, figsize=(9, 4), sharex=True, sharey=True, facecolor='w', edgecolor='k')
 axs = axs.ravel()
 
 norm = matplotlib.colors.Normalize(vmin=0.5, vmax=len(zs)+0.5)
@@ -42,7 +42,7 @@ s_m.set_array([])
 
 for ii, tag in enumerate(tags):
 
-    axs[ii].text(7.9, -6.5, r'$z = {}$'.format(zs[ii]), fontsize = 14)
+    axs[ii].text(7.9, -6.5, r'$z = {}$'.format(zs[ii]), fontsize = 10)
 
     bins = np.arange(7.5, 12.5, 0.25)
     bincen = (bins[1:]+bins[:-1])/2.
@@ -56,7 +56,7 @@ for ii, tag in enumerate(tags):
     xerr = np.ones(len(out))*binwidth[0]/2.
     yerr = err/(vol*binwidth)
 
-    ok1 = np.where(hist > 3)[0][-1]
+    ok1 = np.where(hist >= 5)[0][-1]
 
     Mref = get_data_all(tags_ref[ii], bins = bins, inp = 'REF', DF = True)/(binwidth*refvol)
     okref = np.where(Mref>0)
@@ -87,19 +87,19 @@ for ii, tag in enumerate(tags):
         #     axs[ii].plot(binBt, MBt, color = 'blue', lw =2, ls = 'dashed')
 
     for label in (axs[ii].get_xticklabels() + axs[ii].get_yticklabels()):
-        label.set_fontsize(14)
+        label.set_fontsize(11)
 
     axs[ii].set_xlim((7.6, 11.4))
     axs[ii].set_ylim((-8.2, -0.8))
     axs[ii].set_xticks(np.arange(8., 11.5, 1))
     axs[ii].grid(True, alpha = 0.4)
-    axs[ii].legend(frameon=False, fontsize = 12, numpoints=1, ncol = 2)
+    axs[ii].legend(frameon=False, fontsize = 11, numpoints=1)
     axs[ii].minorticks_on()
     axs[ii].tick_params(axis='x', which='minor', direction='in')
     axs[ii].tick_params(axis='y', which='minor', direction='in')
 
-fig.subplots_adjust(bottom=0.09, left = 0.08, wspace=0, hspace=0)
-fig.text(0.03, 0.5, r'$\mathrm{log}_{10}(\Phi/(\mathrm{cMpc}^{-3}\mathrm{dex}^{-1}))$', va='center', rotation='vertical', fontsize=16)
-fig.text(0.455, 0.03, r'$\mathrm{log}_{10}(\mathrm{M}_{\star}/M_{\odot})$', va='center', fontsize=16)
+fig.subplots_adjust(bottom=0.11, left = 0.09, wspace=0, hspace=0)
+fig.text(0.03, 0.5, r'$\mathrm{log}_{10}(\Phi/(\mathrm{cMpc}^{-3}\mathrm{dex}^{-1}))$', va='center', rotation='vertical', fontsize=12)
+fig.text(0.445, 0.02, r'$\mathrm{log}_{10}(\mathrm{M}_{\star}/M_{\odot})$', va='center', fontsize=12)
 plt.savefig("GSMF_z5_10.pdf", bbox_inches='tight')
 plt.show()

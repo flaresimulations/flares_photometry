@@ -1,3 +1,9 @@
+"""
+
+Figures 9, A3, 10
+
+"""
+
 import sys
 import numpy as np
 import pandas as pd
@@ -42,7 +48,7 @@ for ii, tag in enumerate(tags):
     L_NUV = get_lum_all(tag, LF = False, filter = 'NUV', Luminosity='DustModelI')
     L_FUV_int = get_lum_all(tag, LF = False, filter = 'FUV', Luminosity='Intrinsic')
     Mstar_30 = get_data_all(tag, inp = 'FLARES', DF = False)
-    # sfr_30 = get_data_all(tag, dataset = 'SFR_inst_30', inp = 'FLARES', DF = False)
+    sfr_30 = get_data_all(tag, dataset = 'SFR_inst_30', inp = 'FLARES', DF = False)
 
     ws = np.array([])
     for jj in range(len(weights)):
@@ -50,40 +56,40 @@ for ii, tag in enumerate(tags):
     L_FUV = np.concatenate(L_FUV)
     L_FUV_int = np.concatenate(L_FUV_int)
     L_NUV = np.concatenate(L_NUV)
-    Mstar_30 = np.concatenate(Mstar_30)
-    # sfr_30 = np.concatenate(sfr_30)
+    Mstar_30 = np.concatenate(Mstar_30)*1e10
+    sfr_30 = np.concatenate(sfr_30)
 
 
     ok = np.where(lum_to_M(L_FUV)<low)[0]
     L_FUV, L_NUV, L_FUV_int, Mstar_30 = L_FUV[ok], L_NUV[ok], L_FUV_int[ok], Mstar_30[ok]
-    # sfr_30 = sfr_30[ok]/Mstar_30
+    sfr_30 = sfr_30[ok]/Mstar_30
 
     beta = np.log10(L_FUV/L_NUV)/np.log10(1500./2500.) - 2.0
     att = -2.5*np.log10(L_FUV/L_FUV_int)
-    zpos = -21.3
+    zpos = -17.5
 
-    # if tag=='010_z005p000':
-    #     from astropy.cosmology import Planck13
-    #     from astropy import units as u
-    #     tmp = 1/Planck13.H(5).decompose()
-    #     print ((1.0/(3*tmp.to(u.yr))).value)
-    #     check = np.logical_and(Mstar_30>1e10, att<0.4)
-    #     print (sfr_30[check])
-    #     print (beta[check])
+    if tag=='010_z005p000':
+        from astropy.cosmology import Planck13
+        from astropy import units as u
+        tmp = 1/Planck13.H(5).decompose()
+        print ((1.0/(3*tmp.to(u.yr))).value)
+        check = np.logical_and(Mstar_30>1e10, att<0.4)
+        print (sfr_30[check])
+        print (beta[check])
 
     if input == plt_options[0]:
         x, y, z, w = lum_to_M(L_FUV), att, beta, ws[ok]
         gridsize=(50,21)
         extent=[*[low,-24.5], *ylims]
         add=''
-        savename=F'att_lfuv_beta_z5_10.pdf'
+        savename=F'att_lfuv_beta_z5_10'
         xlabel = r'M$_{1500}$'
     elif input == plt_options[1]:
         x, y, z, w = lum_to_M(L_FUV_int), att, beta, ws[ok]
         gridsize=(55,21)
         xlims = [-16.9, -25.7]
         extent=[*xlims, *ylims]
-        savename=F'att_lfuvintr_beta_z5_10.pdf'
+        savename=F'att_lfuvintr_beta_z5_10'
         xlabel = r'M$_{1500}\mathrm{(Intrinsic)}$'
     elif input == plt_options[2]:
         x, y, z, w = np.log10(Mstar_30), att, beta, ws[ok]
@@ -92,7 +98,7 @@ for ii, tag in enumerate(tags):
         xlims = [7.5, 11.3]
         extent=[*xlims, *ylims]
         zpos = 8.
-        savename=F'att_Mstar_beta_z5_10.pdf'
+        savename=F'att_Mstar_beta_z5_10'
         xlabel = r'$\mathrm{log}_{10}(\mathrm{M}_{\star}/\mathrm{M}_{\odot})$'
 
     if ii == 0:
@@ -134,6 +140,6 @@ fig.subplots_adjust(bottom=0.11, left = 0.05, wspace=0, hspace=0)
 fig.text(0.01, 0.5, r'A$_{\mathrm{FUV}}$=-2.5 log$_{10}$(L$_{\mathrm{FUV}}^{\mathrm{Observed}}$/L$_{\mathrm{FUV}}^{\mathrm{Intrinsic}}$)', va='center', rotation='vertical', fontsize=15)
 fig.text(0.43, 0.03, xlabel, va='center', fontsize=15)
 
-plt.savefig(savename, bbox_inches='tight', dpi=300)
+plt.savefig(savename+'.pdf', bbox_inches='tight', dpi=300)
 
 plt.show()

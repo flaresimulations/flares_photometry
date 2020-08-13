@@ -1,3 +1,9 @@
+"""
+
+    Plots the z=8 [OIII] LF, Figure 14
+
+"""
+
 import numpy as np
 import pandas as pd
 import matplotlib
@@ -19,7 +25,7 @@ def deBarros_sch(logL):
     return np.log10(phi)
 
 
-tag = '008_z007p000'
+tag = '007_z008p000'
 filters = 'FUV'
 h = 0.6777
 vol = (4/3)*np.pi*(14/h)**3
@@ -55,8 +61,21 @@ err = np.sqrt(err)/(binwidth*vol)
 axs.plot(bincen, np.log10(LFOIII), color='black', ls = 'solid')
 axs.fill_between(bincen, np.log10(LFOIII-err), np.log10(LFOIII+err), color='black', alpha=0.15)
 
+# dat1 = get_line_all(tag, 'OIII4959', inp = 'FLARES', LF = False, Type='Intrinsic')
+# dat2 = get_line_all(tag, 'OIII5007', inp = 'FLARES', LF = False, Type='Intrinsic')
+# for jj, sim in enumerate(sims):
+#     tmp, edges = np.histogram(np.log10(dat1[:,0][jj] + dat2[:,0][jj] + dat3[:,0][jj]), bins = bins)
+#
+#     err+=np.square(np.sqrt(tmp)*weights[jj])
+#     LFOIII+=tmp*weights[jj]
+#     LFOIII_tot+=tmp
+#
+# LFOIII = LFOIII/(binwidth*vol)
+# err = np.sqrt(err)/(binwidth*vol)
+# axs.plot(bincen, np.log10(LFOIII), color='black', ls = 'dashed')
+
 L, phi16, phi84 = np.loadtxt('Obs_data/OIII_LF_z8_wSigmaInt_1SigmaContour.txt').T
-axs.fill_between(L, phi16, phi84, color='indianred', alpha=0.5, label=r'de Barros 2019')
+axs.fill_between(L, phi16, phi84, color='indianred', alpha=0.5, label=r'de Barros+2019')
 axs.plot(bincen, deBarros_sch(bincen), color='indianred', ls='solid')
 
 
@@ -70,7 +89,7 @@ axs.tick_params(axis='y', which='minor', direction='in')
 axs.grid(True, alpha = 0.5)
 
 axs.set_xlim(42, 44.2)
-axs.set_ylim(-6.,-1.8)
+axs.set_ylim(-5.3,-1.8)
 axs.set_xticks(np.arange(42, 44.1, 0.5))
 
 axs.set_xlabel(r'log$_{10}$(L([OIII]+H$\beta$)/(erg s$^{-1}$))', fontsize=13)

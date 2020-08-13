@@ -1,3 +1,22 @@
+"""
+
+    Plots the line LF and EW relationship of the 6 prominent
+    nebular lines:
+        CIII]1907, 1909
+        [OII]3726, 3729
+        [NeIII]3869, 3967
+        Hbeta
+        [OIII]4959, 5007
+        Halpha
+
+    The following arguments along with the script for the following plots:
+        0 - line LF (Top plot in Figure 12)
+        1 - EW vs Mstar (Middle plot in Figure 12)
+        2 - EW vs UV luminosity (Bottom plot in Figure 12)
+    
+"""
+
+
 import numpy as np
 import pandas as pd
 import matplotlib, sys
@@ -10,12 +29,7 @@ from modules import get_data_all, get_line_all, get_lum_all
 import seaborn as sns
 sns.set_context("paper")
 
-# CIII]1907, 1909
-# [OII]3726, 3729
-# [NeIII]3869, 3967
-# Hbeta
-# [OIII]4959, 5007
-# Halpha
+
 
 filters = 'FUV'
 conversion_fac = 2E15  #converting from ergs/s/Hz to ergs/s at FUV
@@ -81,7 +95,7 @@ titles = ["H$\\alpha$", "H$\\beta$", "CIII]1907, 1909", "[OII]3726, 3729", "[OII
 input = plt_options[int(sys.argv[1])]
 
 if input == plt_options[0]:
-    fig, axs = plt.subplots(nrows = 1, ncols = 5, figsize=(15,4), sharex=False, sharey=True, facecolor='w', edgecolor='k')
+    fig, axs = plt.subplots(nrows = 1, ncols = 5, figsize=(15,3), sharex=False, sharey=True, facecolor='w', edgecolor='k')
     axs = axs.ravel()
 
     xlims = [[41.7,44.2], [41.2, 43.7], [40.8,43.3], [40.4,42.9],[41.7,44.1]]
@@ -106,34 +120,36 @@ if input == plt_options[0]:
         OIII = get_line_all(tag, 'OIII4959', inp = 'FLARES', LF = False) + get_line_all(tag, 'OIII5007', inp = 'FLARES', LF = False)
         l_fuvs = np.concatenate(get_lum_all(tag, LF=False))
 
-        LF_create(Halpha, weights, l_fuvs, low, axs[0], titles[0], s_m.to_rgba(ii+0.5), ii)
-        LF_create(Hbeta, weights, l_fuvs, low, axs[1], titles[1], s_m.to_rgba(ii+0.5), ii)
-        LF_create(CIII, weights, l_fuvs, low, axs[2], titles[2], s_m.to_rgba(ii+0.5), ii)
-        LF_create(OII, weights, l_fuvs, low, axs[3], titles[3], s_m.to_rgba(ii+0.5), ii)
-        # LF_create(NeIII, weights, l_fuvs, low, axs[4], titles[4], s_m.to_rgba(ii+0.5), ii)
-        LF_create(OIII, weights, l_fuvs, low, axs[4], titles[4], s_m.to_rgba(ii+0.5), ii)
+        LF_create(Halpha, weights, l_fuvs, low, axs[0], titles[0], s_m.to_rgba(ii+0.5))
+        LF_create(Hbeta, weights, l_fuvs, low, axs[1], titles[1], s_m.to_rgba(ii+0.5))
+        LF_create(CIII, weights, l_fuvs, low, axs[2], titles[2], s_m.to_rgba(ii+0.5))
+        LF_create(OII, weights, l_fuvs, low, axs[3], titles[3], s_m.to_rgba(ii+0.5))
+        # LF_create(NeIII, weights, l_fuvs, low, axs[4], titles[4], s_m.to_rgba(ii+0.5))
+        LF_create(OIII, weights, l_fuvs, low, axs[4], titles[4], s_m.to_rgba(ii+0.5))
 
 
     for ii in range(5):
         axs[ii].set_xlim(xlims[ii])
         axs[ii].set_ylim(-9.,-1.8)
+        for label in (axs[ii].get_xticklabels() + axs[ii].get_yticklabels()):
+            label.set_fontsize(13)
 
 
-    axs[0].set_ylabel(r'log$_{10}$($\phi$/(cMpc$^{-3}$dex$^{-1}$))', fontsize=14)
-    fig.subplots_adjust(bottom=0.13, left=0.08, wspace=0, hspace=0)
-    fig.text(0.45, 0.03, r'log$_{10}$(L/(erg s$^{-1}$))', va='center', fontsize=14)
-    cbaxes = fig.add_axes([0.74, 0.14, 0.004, 0.45])
+    axs[0].set_ylabel(r'log$_{10}$($\phi$/(cMpc$^{-3}$dex$^{-1}$))', fontsize=15)
+    fig.subplots_adjust(bottom=0.14, left=0.08, right=0.92,  wspace=0, hspace=0)
+    fig.text(0.45, 0.001, r'log$_{10}$(L/(erg s$^{-1}$))', va='center', fontsize=15)
+    cbaxes = fig.add_axes([0.925, 0.17, 0.007, 0.65])
     fig.colorbar(s_m, cax=cbaxes)
-    cbaxes.set_ylabel(r'$z$', fontsize = 16)
+    cbaxes.set_ylabel(r'$z$', fontsize = 20)
     cbaxes.set_yticks(np.arange(len(zs)))
     cbaxes.set_yticklabels(zs)
     cbaxes.invert_yaxis()
     for label in (cbaxes.get_yticklabels()):
-        label.set_fontsize(14)
+        label.set_fontsize(13)
 
 
 if input != plt_options[0] :
-    fig, axs = plt.subplots(nrows = 1, ncols = 5, figsize=(15,3), sharex=False, sharey=False, facecolor='w', edgecolor='k')
+    fig, axs = plt.subplots(nrows = 1, ncols = 5, figsize=(15,2.5), sharex=False, sharey=False, facecolor='w', edgecolor='k')
     axs = axs.ravel()
     # xlims =
     df = pd.read_csv('weight_files/weights_grid.txt')
@@ -154,11 +170,12 @@ if input != plt_options[0] :
         # NeIII = get_line_all(tag, 'NeIII3869', inp = 'FLARES', LF = False) + get_line_all(tag, 'NeIII3967', inp = 'FLARES', LF = False)
         OIII = np.concatenate(get_line_all(tag, 'OIII4959', inp = 'FLARES', LF = False)[:,1] + get_line_all(tag, 'OIII5007', inp = 'FLARES', LF = False)[:,1])
         if input == plt_options[1]:
-            x_inp = get_data_all(tag, dataset = 'Mstar_30', DF=False)
+            x_inp = get_data_all(tag, dataset = 'Mstar_30', DF=False)*1e10
             for kk in range(len(x_inp)): x_inp[kk] = np.log10(x_inp[kk])
             bins = np.arange(7.5, 11.5, 0.5)
             xlabel=r'log$_{10}$(M$_{\star}$/M$_{\odot}$)'
             xpos = 0.455
+            bottom = 0.20
 
         elif input == plt_options[2]:
             x_inp = get_lum_all(tag, LF=False)
@@ -166,6 +183,7 @@ if input != plt_options[0] :
             bins = -np.arange(17, 25, 1)[::-1]
             xlabel = r'$\mathrm{M}_{1500}$'
             xpos = 0.47
+            bottom = 0.21
 
             for kk in range(5): axs[kk].set_xlim((-17,-23.9))
 
@@ -181,9 +199,9 @@ if input != plt_options[0] :
         create_EW_plot(x_inp, np.log10(OII), bins, ws, axs[3], titles[3], s_m.to_rgba(ii+0.5), ii)
         create_EW_plot(x_inp, np.log10(OIII), bins, ws, axs[4], titles[4], s_m.to_rgba(ii+0.5), ii)
 
-    axs[0].set_ylabel(r'log$_{10}$(EW/$\AA$)', fontsize=14)
-    fig.subplots_adjust(bottom=0.15, left=0.08)
-    fig.text(xpos, 0.005, xlabel, va='center', fontsize=15)
+    axs[0].set_ylabel(r'log$_{10}$(EW/$\AA$)', fontsize=15)
+    fig.subplots_adjust(bottom=bottom, left=0.08)
+    fig.text(xpos, 0.005, xlabel, va='center', fontsize=17)
     # cbaxes = fig.add_axes([0.95, 0.14, 0.004, 0.45])
     # fig.colorbar(s_m, cax=cbaxes)
     # cbaxes.set_ylabel(r'$z$', fontsize = 16)
