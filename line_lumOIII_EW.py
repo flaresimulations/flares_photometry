@@ -129,7 +129,7 @@ for ii, tag in enumerate(tags):
     axs[3*ii+2].plot(xx[tok][:tok1+1], yy[tok][:tok1+1], ls='-', color='black', alpha=1.0, lw=1)
     xlims = [42.9, 45.]
     ylims = [-2.7, -0.5]
-    axs[3*ii+2].hexbin(x, y, gridsize=(35,15), bins='log', cmap='Greys_r', linewidths=0., mincnt=3, extent=[*xlims, *ylims], alpha=0.6, zorder=2)
+    axs[3*ii+2].hexbin(x, y, gridsize=(35,15), bins='log', cmap='Greys_r', linewidths=0., mincnt=5, extent=[*xlims, *ylims], alpha=0.6, zorder=2)
     plot_OIIIlum_UV(z, axs[3*ii+2])
 
 for ii in [0,1,2]:

@@ -53,22 +53,22 @@ def get_data(ii, tag, inp = 'FLARES'):
         if len(num) == 1:
             num =  '0'+num
 
-        sim = rF"../flares_pipeline/data/FLARES_{num}_sp_info.hdf5"
+        sim = './data/flares.hdf5'
         num = F"{num}/"
 
 
     else:
-        sim = rF"../flares_pipeline/data/EAGLE_{inp}_sp_info.hdf5"
+        sim = rF"./data/EAGLE_{inp}_sp_info.hdf5"
         num=""
 
 
     with h5py.File(sim, 'r') as hf:
-        S_len = np.array(hf[tag+'/Galaxy'].get('S_Length'), dtype = np.int64)
-        G_len = np.array(hf[tag+'/Galaxy'].get('G_Length'), dtype = np.int64)
-        S_mass = np.array(hf[tag+'/Particle'].get('S_MassInitial'), dtype = np.float64)*1e10
-        G_mass = np.array(hf[tag+'/Particle'].get('G_Mass'), dtype = np.float64)*1e10
-        S_Z = np.array(hf[tag+'/Particle'].get('S_Z_smooth'), dtype = np.float64)
-        G_Z = np.array(hf[tag+'/Particle'].get('G_Z_smooth'), dtype = np.float64)
+        S_len = np.array(hf[num+tag+'/Galaxy'].get('S_Length'), dtype = np.int64)
+        G_len = np.array(hf[num+tag+'/Galaxy'].get('G_Length'), dtype = np.int64)
+        S_mass = np.array(hf[num+tag+'/Particle'].get('S_MassInitial'), dtype = np.float64)*1e10
+        G_mass = np.array(hf[num+tag+'/Particle'].get('G_Mass'), dtype = np.float64)*1e10
+        S_Z = np.array(hf[num+tag+'/Particle'].get('S_Z_smooth'), dtype = np.float64)
+        G_Z = np.array(hf[num+tag+'/Particle'].get('G_Z_smooth'), dtype = np.float64)
 
     begin = np.zeros(len(S_len), dtype = np.int64)
     end = np.zeros(len(S_len), dtype = np.int64)
@@ -150,6 +150,7 @@ for ii, tag in enumerate(tags):
     ax.errorbar(xx[ok], yy[ok], ls='-', color=s_m.to_rgba(ii+0.5), alpha=0.35, lw=2, fmt='D')
     yerr2_lo = np.append(yerr2_lo, np.max(yy[ok]-yy16[ok]))
     yerr2_up = np.append(yerr2_up, np.max(yy84[ok]-yy[ok]))
+
 
 ax.errorbar(9.85, -3.5, yerr=[[np.max(yerr1_lo)], [np.max(yerr1_up)]], color='red', fmt='s', markersize=10, alpha=0.8)
 ax.errorbar(10.15, -3.5, yerr=[[np.max(yerr2_lo)], [np.max(yerr2_up)]], color='red', fmt='D', markersize=10, alpha=0.35)

@@ -62,8 +62,8 @@ for ii, tag in enumerate(tags):
     okref = np.where(Mref>0)
     # Magn = get_data_all(tags_ref[ii], bins = bins, inp = 'AGNdT9', DF = True)/(binwidth*AGNdT9vol)
     # okagn = np.where(Magn>0)
-    if zs[ii]>=8:
-        binBt, MBt = bluetides_gsmf(zs[ii])
+    # if zs[ii]>=8:
+    #     binBt, MBt = bluetides_gsmf(zs[ii])
 
 
     if zs[ii] == 10:

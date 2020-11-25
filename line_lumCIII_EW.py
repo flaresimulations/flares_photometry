@@ -121,7 +121,7 @@ ax.plot(xx[tok], yy[tok], ls='dashed', color='black', alpha=1.0, lw=1)
 ax.plot(xx[tok][:tok1+1], yy[tok][:tok1+1], ls='-', color='black', alpha=1.0, lw=1, label='FLARES z={}'.format(z))
 xlims = [42.9, 45.4]
 ylims = [0.1, 3.5]
-ax.hexbin(x, y, gridsize=(45,35), bins='log', cmap='Greys_r', linewidths=0., mincnt=3, extent=[*xlims, *ylims], alpha=0.6, zorder=2)
+ax.hexbin(x, y, gridsize=(45,35), bins='log', cmap='Greys_r', linewidths=0., mincnt=5, extent=[*xlims, *ylims], alpha=0.6, zorder=2)
 
 ax.set_xlim(43.2,45.5)
 ax.set_ylim(0.25,2.2)

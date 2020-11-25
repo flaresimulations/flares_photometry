@@ -22,6 +22,16 @@ def plot_posteriors(data):
     with open(data) as f:
         samples = json.load(f)
 
+    if 'DPL' in data:
+        tmp1 = np.array(samples['alpha_1'])
+        tmp2 = np.array(samples['alpha_2'])
+        ok = np.where(tmp2>tmp1)
+        tmp = tmp2[ok]
+        tmp2[ok]= tmp1[ok]
+        tmp1[ok]=tmp
+        samples['alpha_2']=tmp2
+        samples['alpha_1']=tmp1
+
     for ii in samples.keys():
         s = np.vstack(np.array([samples[ii] for ii in samples.keys()]).T)
     figure = corner.corner(s)
@@ -47,9 +57,10 @@ def get_data(ii, tag, dataset = 'Mstar_30', bins = np.arange(7.5,12,0.5), DF=Fal
 
         num = str(ii)
         if ii/10 < 1: num = '0'+num
-        #sim = "./data2/flares.hdf5"
-        sim = rF"../data/flares.hdf5"
+
+        sim = rF"./data/flares.hdf5"
         num = num+'/'
+
 
     else:
 
@@ -80,6 +91,7 @@ def get_lum(ii, tag, bins = np.arange(-26,-16,0.5), inp='FLARES', filter = 'FUV'
         filename = rF"./data/flares.hdf5"
         num = num+'/'
 
+
     else:
 
         filename = F'./data/EAGLE_{inp}_sp_info.hdf5'
@@ -107,7 +119,7 @@ def get_line(ii, tag, line = 'HI6563', inp = 'FLARES', LF = False, bins = np.ara
         if len(num) == 1:
             num =  '0'+num
 
-        filename = rF"../data/flares.hdf5"#'./data/flares.hdf5'
+        filename = './data/flares.hdf5'
         num = num+'/'
 
     else:
@@ -137,7 +149,6 @@ def get_data_all(tag, dataset = 'Mstar_30', bins = np.arange(7.5, 12, 0.5), inp 
         sims = np.arange(0,len(weights))
 
         calc = partial(get_data, tag = tag, dataset = dataset, bins = bins, inp = inp, DF = DF)
-        # poiss_lims = partial(models.poisson_confidence_interval, p = 0.68)
 
         pool = schwimmbad.MultiPool(processes=12)
         dat = np.array(list(pool.map(calc, sims)))
@@ -147,17 +158,12 @@ def get_data_all(tag, dataset = 'Mstar_30', bins = np.arange(7.5, 12, 0.5), inp 
             hist = np.sum(dat, axis = 0)
             out = np.zeros(len(bins)-1)
             err = np.zeros(len(bins)-1)
-            # out_up = np.zeros(len(bins)-1)
-            # out_low = np.zeros(len(bins)-1)
+
             for ii, sim in enumerate(sims):
                 out+=dat[ii]*weights[ii]
                 err+=np.square(np.sqrt(dat[ii])*weights[ii])
-                #
-                # tmp = np.array(list(pool.map(poiss_lims, dat[ii])))*weights[ii]
-                # out_low+=tmp[:,0]
-                # out_up+=tmp[:,1]
 
-            return out, hist, np.sqrt(err)#out_low, out_up #np.sqrt(err)
+            return out, hist, np.sqrt(err)
 
         else: return dat
 
@@ -177,7 +183,6 @@ def get_lum_all(tag, bins = np.arange(-25, -16, 0.5), inp = 'FLARES', LF = True,
         sims = np.arange(0,len(weights))
 
         calc = partial(get_lum, tag = tag, bins = bins, inp = inp, LF = LF, filter = filter, Luminosity = Luminosity)
-        #poiss_lims = partial(models.poisson_confidence_interval, p = 0.68)
 
         pool = schwimmbad.MultiPool(processes=12)
         dat = np.array(list(pool.map(calc, sims)))
@@ -193,13 +198,7 @@ def get_lum_all(tag, bins = np.arange(-25, -16, 0.5), inp = 'FLARES', LF = True,
                 out+=dat[ii]*weights[ii]
                 err+=np.square(np.sqrt(dat[ii])*weights[ii])
 
-                # pool = schwimmbad.MultiPool(processes=12)
-                # tmp = np.array(list(pool.map(poiss_lims, dat[ii])))
-                # pool.close()
-                # out_low+=np.square((dat[ii]-tmp[:,0])*weights[ii])
-                # out_up+=np.square((tmp[:,1]-dat[ii])*weights[ii])
-
-            return out, hist, np.sqrt(err)#, np.sqrt(out_low), np.sqrt(out_up) #np.sqrt(err)
+            return out, hist, np.sqrt(err)
 
         else: return dat
 
@@ -219,7 +218,6 @@ def get_line_all(tag, line, inp = 'FLARES', LF = True, bins = np.arange(40, 46, 
         sims = np.arange(0,len(weights))
 
         calc = partial(get_line, tag = tag, line = line, inp = inp, LF = LF, bins = bins, Type = Type)
-        # poiss_lims = partial(models.poisson_confidence_interval, p = 0.68)
 
         pool = schwimmbad.MultiPool(processes=12)
         dat = np.array(list(pool.map(calc, sims)))
@@ -229,17 +227,12 @@ def get_line_all(tag, line, inp = 'FLARES', LF = True, bins = np.arange(40, 46, 
             hist = np.sum(dat, axis = 0)
             out = np.zeros(len(bins)-1)
             err = np.zeros(len(bins)-1)
-            # out_up = np.zeros(len(bins)-1)
-            # out_low = np.zeros(len(bins)-1)
+
             for ii, sim in enumerate(sims):
                 out+=dat[ii]*weights[ii]
                 err+=np.square(np.sqrt(dat[ii])*weights[ii])
-                #
-                # tmp = np.array(list(pool.map(poiss_lims, dat[ii])))*weights[ii]
-                # out_low+=tmp[:,0]
-                # out_up+=tmp[:,1]
 
-            return out, hist, np.sqrt(err)#out_low, out_up #np.sqrt(err)
+            return out, hist, np.sqrt(err)
 
         else: return dat
 

@@ -1,6 +1,6 @@
 """
 
-
+Figure 8, with argument 0
 
 """
 

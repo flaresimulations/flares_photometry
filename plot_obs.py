@@ -2,12 +2,24 @@ import numpy as np
 import pandas as pd
 from FLARE.photom import M_to_lum
 
+
+def rem_inf(low, up):
+
+    ok = np.isfinite(low)
+    low[~ok] = 10.
+    ok = np.isfinite(up)
+    up[~ok] = 10.
+
+    return low, up
+
 def plot_UVLF_Fink15(z, axs):
 
     data = np.genfromtxt(f"./Obs_data/uv_lum_Fink15_z{z}.txt", delimiter=',', skip_header=1)
     M, phi, phi_up, phi_low, uplims = data[:,0], data[:,1]*1e-3, data[:,2]*1e-3, data[:,3]*1e-3, data[:,4]
     phi_up = np.log10(phi + phi_up) - np.log10(phi)
     phi_low = np.log10(phi) - np.log10(phi - phi_low)
+
+    phi_low, phi_up = rem_inf(phi_low, phi_up)
 
     axs.errorbar(M, np.log10(phi), yerr=[phi_low, phi_up], uplims=uplims, label='Finkelstein+2015', ls='None', fmt='s', color='grey', alpha=0.8)
 
@@ -19,6 +31,8 @@ def plot_UVLF_Bouw15(z, axs):
     phi_up = np.log10(phi + phi_err) - np.log10(phi)
     phi_low = np.log10(phi) - np.log10(phi - phi_err)
 
+    phi_low, phi_up = rem_inf(phi_low, phi_up)
+
     axs.errorbar(M, np.log10(phi), yerr=[phi_low, phi_up], uplims=uplims, label='Bouwens+2015', ls='None', fmt='D', color='black', alpha = 0.4)
 
 def plot_UVLF_Bouw16(z, axs):
@@ -27,6 +41,8 @@ def plot_UVLF_Bouw16(z, axs):
     M, phi, phi_up, phi_low, uplims = data[:,0], data[:,1]*1e-3, data[:,2]*1e-3, data[:,3]*1e-3, data[:,4]
     phi_up = np.log10(phi + phi_up) - np.log10(phi)
     phi_low = np.log10(phi) - np.log10(phi - phi_low)
+
+    phi_low, phi_up = rem_inf(phi_low, phi_up)
 
     axs.errorbar(M, np.log10(phi), yerr=[phi_low, phi_up], uplims=uplims, label='Bouwens+2016', ls='None', fmt='^', color='black', alpha=0.4, markersize=7)
 
@@ -37,6 +53,8 @@ def plot_UVLF_Bouw17(z, axs):
     phi_up = np.log10(phi + phi_up) - np.log10(phi)
     phi_low = np.log10(phi) - np.log10(phi - phi_low)
 
+    phi_low, phi_up = rem_inf(phi_low, phi_up)
+
     axs.errorbar(M, np.log10(phi), yerr=[phi_low, phi_up], uplims=uplims, label='Bouwens+2017', ls='None', fmt='8', color='black', alpha=0.4)
 
 def plot_UVLF_Stefanon19(z, axs):
@@ -46,6 +64,8 @@ def plot_UVLF_Stefanon19(z, axs):
     phi_up = np.log10(phi + phi_up) - np.log10(phi)
     phi_low = np.log10(phi) - np.log10(phi - phi_low)
 
+    phi_low, phi_up = rem_inf(phi_low, phi_up)
+
     axs.errorbar(M, np.log10(phi), yerr=[phi_low, phi_up], label='Stefanon+2019', ls='None', fmt='p', color='black', alpha=0.4, markersize=7)
 
 def plot_UVLF_Bowler20(z, axs):
@@ -54,6 +74,8 @@ def plot_UVLF_Bowler20(z, axs):
     M, M_err, phi, phi_err, uplims = data[:,0], data[:,1], data[:,2]*1e-6, data[:,3]*1e-6, data[:,4]
     phi_up = np.log10(phi + phi_err) - np.log10(phi)
     phi_low = np.log10(phi) - np.log10(phi - phi_err)
+
+    phi_low, phi_up = rem_inf(phi_low, phi_up)
 
     axs.errorbar(M, np.log10(phi), xerr=M_err, yerr=[phi_low, phi_up], uplims=uplims, label='Bowler+2020', ls='None', fmt='D', color='grey', alpha=0.8, markersize=7)
 
@@ -110,6 +132,8 @@ def plot_UVLF(z, axs):
         M, phi, phi_up, phi_low, uplims = data[:,0], data[:,1], data[:,2], data[:,3], data[:,4]
         phi_up = np.log10(phi + phi_up) - np.log10(phi)
         phi_low = np.log10(phi) - np.log10(phi - phi_low)
+
+        phi_low, phi_up = rem_inf(phi_low, phi_up)
 
         axs.errorbar(M, np.log10(phi), yerr=[phi_low, phi_up], uplims=uplims, label='Oesch+2018', ls='None', fmt='H', color = 'black', alpha = 0.5, markersize=6)
 

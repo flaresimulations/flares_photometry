@@ -12,6 +12,7 @@ from functools import partial
 import schwimmbad
 from FLARE.photom import lum_to_M
 import warnings
+import flares
 warnings.filterwarnings("ignore", category=RuntimeWarning)
 
 import FLARE.filters
@@ -26,21 +27,21 @@ def get_data(ii, tag, inp='FLARES', filter = 'FUV', Luminosity = 'DustModelI'):
         if len(num) == 1:
             num =  '0'+num
 
-        filename = rF"../flares_pipeline/data3/FLARES_{num}_sp_info.hdf5"#'./data/flares.hdf5'
+        filename = './data/flares.hdf5'
 
     with h5py.File(filename,'r') as hf:
-        glen = np.array(hf[F"{tag}/Galaxy/G_Length"])
-        slen = np.array(hf[F"{tag}/Galaxy/S_Length"])
+        glen = np.array(hf[F"{num}/{tag}/Galaxy/G_Length"])
+        slen = np.array(hf[F"{num}/{tag}/Galaxy/S_Length"])
 
         if np.isscalar(filter):
-            lum = np.array(hf[F"{tag}/Galaxy/BPASS_2.2.1/Chabrier300/Luminosity/{Luminosity}/{filter[8:]}"])
+            lum = np.array(hf[F"{num}/{tag}/Galaxy/BPASS_2.2.1/Chabrier300/Luminosity/{Luminosity}/{filter[8:]}"])
         else:
             lum = np.zeros((len(glen), len(filter)))
             for ii, jj in enumerate(filter):
-                lum[:,ii] = np.array(hf[F"{tag}/Galaxy/BPASS_2.2.1/Chabrier300/Luminosity/{Luminosity}/{jj[8:]}"])
+                lum[:,ii] = np.array(hf[F"{num}/{tag}/Galaxy/BPASS_2.2.1/Chabrier300/Luminosity/{Luminosity}/{jj[8:]}"])
 
 
-    return lum, glen+slen
+    return lum, glen+slen, slen
 
 
 def get_all(tag, inp = 'FLARES', filter = 'FUV', Luminosity = 'DustModelI'):
@@ -60,6 +61,7 @@ def get_all(tag, inp = 'FLARES', filter = 'FUV', Luminosity = 'DustModelI'):
 
 ###Defining input values
 h = 0.6777
+quantiles=[0.05,0.50,0.95]
 z = [5, 6, 7, 8, 9, 10]
 tags = ['010_z005p000', '009_z006p000', '008_z007p000', '007_z008p000', '006_z009p000', '005_z010p000']
 tags_ref = ['008_z005p037', '006_z005p971', '005_z007p050', '004_z008p075', '003_z008p988', '002_z009p993']
@@ -79,13 +81,19 @@ for ii, jj in enumerate(z):
         if kk == 0:
             Mlum = data[kk][0]
             part = data[kk][1]
+            slen = data[kk][2]
+            w = np.ones(len(data[kk][2]))*weights[kk]
         else:
             Mlum = np.append(Mlum, data[kk][0], axis = 0)
             part = np.append(part, data[kk][1])
+            slen = np.append(slen, data[kk][2])
+            w = np.append(w, np.ones(len(data[kk][2]))*weights[kk])
 
-    ok = np.where(part == 100)
+    ok = np.where(part == 100)[0]
+
 
     percentile[ii] = np.percentile(Mlum[ok], 97, axis = 0)
+
 
 for ii, jj in enumerate(filters):
 

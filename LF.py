@@ -60,16 +60,15 @@ else:
     axs = axs.ravel()
     function=''
 
-
 norm = matplotlib.colors.Normalize(vmin=0.5, vmax=len(zs)+0.5)
-
 # choose a colormap
 c_m = matplotlib.cm.viridis_r
-
 # create a ScalarMappable and initialize a data structure
 s_m = matplotlib.cm.ScalarMappable(cmap=c_m, norm=norm)
 s_m.set_array([])
-# dat = pd.DataFrame({})
+
+dat = pd.DataFrame({})
+
 for ii, z in enumerate(zs):
     df = pd.read_csv('Magnitude_limits.txt')
     low = np.array(df[filters])[ii]
@@ -82,19 +81,19 @@ for ii, z in enumerate(zs):
     out, hist, err = get_lum_all(tags[ii], bins=bins)
 
     Msim = out/(binwidth*vol)
-    #out_low, out_up = out_low/(binwidth*vol), out_up/(binwidth*vol)
     xerr = np.ones(len(out))*binwidth[0]/2.
     yerr = err/(vol*binwidth)
     ok = np.where(hist > 0)[0]
 
     observed = Msim*(binwidth*parent_volume)
     sigma = observed/np.sqrt(hist)
-    # xx, yy, zz = np.zeros(15), np.zeros(15), np.zeros(15)
-    # num = len(ok)
-    # xx[:num], yy[:num], zz[:num] = bincen[ok], Msim[ok], yerr[ok]
-    # dat[f"M{z}"] = xx
-    # dat[f"phi{z}"] = yy
-    # dat[F"err{z}"] = zz
+    xx, yy, zz, number = np.zeros(15), np.zeros(15), np.zeros(15), np.zeros(15)
+    num = len(ok)
+    xx[:num], yy[:num], zz[:num], number[:num] = bincen[ok], Msim[ok], yerr[ok], hist[ok]
+    dat[f"M{z}"] = xx
+    dat[f"phi{z}"] = yy
+    dat[F"err{z}"] = zz
+    dat[F"num{z}"] = number
 
     if input != plt_options[1]:
 
@@ -116,9 +115,14 @@ for ii, z in enumerate(zs):
         ok1 = np.where(hist[ok] >= 5)[0][0]
         Mintr, tmp, tmp1 = get_lum_all(tags[ii], bins=bins, Luminosity='Intrinsic')/(binwidth*vol)
         Mref = get_lum_all(tags_ref[ii], bins=bins, inp='REF')/(binwidth*refvol)
+        yerrref = np.sqrt(Mref/(binwidth*refvol))
         okref = np.where(Mref>0)[0]
-        # Magn = get_lum_all(tags_ref[ii], bins=bins, inp='AGNdT9')/(binwidth*AGNdT9vol)
-        # okagn = np.where(Magn>0)[0]
+        # xx, yy, zz = np.zeros(15), np.zeros(15), np.zeros(15)
+        # num = len(okref)
+        # xx[:num], yy[:num], zz[:num] = bincen[okref], Mref[okref], yerrref[okref]
+        # dat[f"M{z}"] = xx
+        # dat[f"phi{z}"] = yy
+        # dat[F"err{z}"] = zz
         if z!=5:
             axs[ii].plot(M5, np.log10(phi5), lw=2, alpha=0.7, ls='dashed', color=s_m.to_rgba(0.5))
 
@@ -126,7 +130,6 @@ for ii, z in enumerate(zs):
             axs[ii].plot(bincen[ok][ok1:], np.log10(Msim[ok][ok1:]), lw=2, label=r'\textsc{Flares}', color='black', alpha=0.7)
             axs[ii].plot(bincen, np.log10(Mintr), lw=2, ls='dotted', label=r'\textsc{Flares} intrinsic',  color='black', alpha=0.7)
             axs[ii].plot(bincen[okref], np.log10(Mref[okref]), color='crimson', lw=2, ls='dashed', label=r'\textsc{Eagle} Ref')
-            # axs[ii].plot(bincen[okagn], np.log10(Magn[okagn]), color='brown', lw=2, ls='dashed', label=r'\textsc{Eagle} AGNdT9')
             axs[ii].legend(frameon=False, fontsize = 12, numpoints=1, ncol = 2)
 
         axs[ii].plot(bincen[ok][ok1:], np.log10(Msim[ok][ok1:]), lw = 2, color=s_m.to_rgba(ii+0.5))
@@ -134,7 +137,6 @@ for ii, z in enumerate(zs):
         axs[ii].fill_between(bincen[ok], np.log10(Msim[ok]-yerr[ok]), np.log10(Msim[ok]+yerr[ok]), alpha=0.5, color=s_m.to_rgba(ii+0.5))
         axs[ii].plot(bincen, np.log10(Mintr), lw=2, ls='dotted', color=s_m.to_rgba(ii+0.5))
         axs[ii].plot(bincen[okref], np.log10(Mref[okref]), color='crimson', lw=2, ls='dashed')
-        # axs[ii].plot(bincen[okagn], np.log10(Magn[okagn]), color='brown', lw=2, ls='dashed')
 
 
     else:
@@ -190,7 +192,6 @@ if input == plt_options[1]:
         axs[ll].grid(True, alpha=0.6)
         axs[ll].set_xlim(-16.9, -24.7)
         axs[ll].set_ylim(-9.4, -1.7)
-        #axs[ll].set_ylabel(r'$\mathrm{log}_{10}(\Phi/(\mathrm{cMpc}^{-3}\mathrm{Mag}^{-1}))$', fontsize=14)
         axs[ll].minorticks_on()
         axs[ll].tick_params(axis='x', which='minor', direction='in')
         axs[ll].tick_params(axis='y', which='minor', direction='in')

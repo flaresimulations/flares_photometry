@@ -105,7 +105,7 @@ if inp == plt_options[0]:
     s_m = matplotlib.cm.ScalarMappable(cmap=c_m, norm=norm)
     s_m.set_array([])
 
-    bins = np.arange(-1, 4, 0.25)
+    bins = np.arange(-1, 4, 0.4)
     bincen = (bins[1:]+bins[:-1])/2.
     binwidth = bins[1:] - bins[:-1]
 
@@ -143,25 +143,31 @@ if inp == plt_options[0]:
             sfr_obsc+=tmp*weights[jj]
             sfr_obsc_err+=np.square(np.sqrt(tmp)*weights[jj])
 
+        sfr_tot_err = np.sqrt(sfr_tot_err)
+        sfr_unobsc_err = np.sqrt(sfr_unobsc_err)
+        sfr_obsc_err = np.sqrt(sfr_obsc_err)
 
 
         sfr_tot = sfr_tot/(binwidth*vol)
         sfr_tot_err = sfr_tot_err/(vol*binwidth)
+        yerr_tot = np.log10(sfr_tot) - np.log10(sfr_tot-sfr_tot_err), np.log10(sfr_tot+sfr_tot_err) - np.log10(sfr_tot)
 
         sfr_unobsc = sfr_unobsc/(binwidth*vol)
-        sfr_unobsc_err = sfr_tot_err/(vol*binwidth)
+        sfr_unobsc_err = sfr_unobsc_err/(vol*binwidth)
+        yerr_unobsc = np.log10(sfr_unobsc) - np.log10(sfr_unobsc-sfr_unobsc_err), np.log10(sfr_unobsc+sfr_unobsc_err) - np.log10(sfr_unobsc)
 
         sfr_obsc = sfr_obsc/(binwidth*vol)
         sfr_obsc_err = sfr_obsc_err/(vol*binwidth)
+        yerr_obsc = np.log10(sfr_obsc) - np.log10(sfr_obsc-sfr_obsc_err), np.log10(sfr_obsc+sfr_obsc_err) - np.log10(sfr_obsc)
 
         if z!=10:
             axs[ii].errorbar(bincen, np.log10(sfr_tot), ls='solid', color=s_m.to_rgba(ii+0.5))
-            axs[ii].errorbar(bincen, np.log10(sfr_unobsc), ls='dashed', color=s_m.to_rgba(ii+0.5))
-            axs[ii].errorbar(bincen, np.log10(sfr_obsc), ls='dotted', color=s_m.to_rgba(ii+0.5))
+            axs[ii].errorbar(bincen, np.log10(sfr_unobsc), yerr = yerr_unobsc, ls='dashed', color=s_m.to_rgba(ii+0.5))
+            axs[ii].errorbar(bincen, np.log10(sfr_obsc), yerr = yerr_obsc, ls='dotted', color=s_m.to_rgba(ii+0.5))
         else:
             axs[ii].errorbar(bincen, np.log10(sfr_tot), ls='solid', color=s_m.to_rgba(ii+0.5), label='Total')
-            axs[ii].errorbar(bincen, np.log10(sfr_unobsc), ls='dashed', color=s_m.to_rgba(ii+0.5), label='Unobscured/UV')
-            axs[ii].errorbar(bincen, np.log10(sfr_obsc), ls='dotted', color=s_m.to_rgba(ii+0.5), label='Obscured/IR')
+            axs[ii].errorbar(bincen, np.log10(sfr_unobsc), yerr = yerr_unobsc, ls='dashed', color=s_m.to_rgba(ii+0.5), label='Unobscured/UV')
+            axs[ii].errorbar(bincen, np.log10(sfr_obsc), yerr = yerr_obsc, ls='dotted', color=s_m.to_rgba(ii+0.5), label='Obscured/IR')
 
 
 
@@ -177,7 +183,7 @@ if inp == plt_options[0]:
 
                 axs[ii].errorbar(obs_df[author]['log10SFR'][mask],
                             np.log10(obs_df[author]['phi'][mask]),
-                            yerr=[lo,hi], ls='none',marker=ms,color='grey',label=label)
+                            yerr=[lo,hi], ls='none',marker=ms,color='grey',label=label, alpha=0.3)
 
 
         axs[ii].grid(True, alpha=0.6)
@@ -230,11 +236,12 @@ elif inp == plt_options[1]:
 
     print ("Obscured fraction = ", sfrd_obsc/sfrd_tot)
 
-    ax.errorbar([4.9, 5.9, 6.8, 7.9, 10.4], [-1.6, -1.8, -1.92, -2.23, -3.28], yerr=[[0.06,0.06,0.06,0.07,0.45], [0.06,0.06,0.06,0.07,0.36]], marker='s', ls = 'None', alpha=0.5, color='green', label='Bouwens+2015')
+    ax.errorbar([4.9, 5.9, 6.8, 7.9, 10.4], [-1.85, -2.05, -2.17, -2.48, -3.28], yerr=[[0.06,0.06,0.06,0.07,0.45], [0.06,0.06,0.06,0.07,0.36]], marker='s', ls = 'None', alpha=0.5, color='green', label='Bouwens+2020 (Unobscured)')
+
     #ax.errorbar([5.25], np.log10([7.46e-2]), xerr=[0.75], yerr=[[np.log10([7.46e-2])-np.log10([4.71e-2])], [np.log10([1.36e-1])-np.log10([7.46e-2])]], color='red', alpha=0.5, label='Gruppioni+2020 (sub-mm)')
     #ax.plot(zs, np.log10(0.015 * ((1+zs)**2.7)/(1+((1+zs)/2.9)**5.6)), ls='dashed', color='black', label=r'Madua $\&$ Dickinson 2014')
 
-    ax.errorbar([4.5, 5.5], [-2.44, -2.67], yerr= [0.25,0.25], lolims=[1,1], marker='s', color='red', alpha=0.5, label='Khusanova+2020')
+    ax.errorbar([4.5, 5.5], [-2.44, -2.67], yerr= [0.25,0.25], lolims=[1,1], marker='s', ls = 'None', color='red', alpha=0.5, label='Khusanova+2020')
 
     for label in (ax.get_xticklabels()+ax.get_yticklabels()):
         label.set_fontsize(11)

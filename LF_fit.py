@@ -23,13 +23,13 @@ import fitDF.analyse as analyse
 
 import flares
 from modules import get_lum_all, Schechter, DPL, fit_function
-import fit_bootstrap
+# import fit_bootstrap
 from mpi4py import MPI
 import seaborn as sns
 sns.set_context("paper")
 
 
-model = 'Schechter'
+model = str(sys.argv[1])
 zs = [5., 6., 7., 8., 9., 10.]
 fl = flares.flares('./data/flares.hdf5')
 h = 0.6777
@@ -93,7 +93,7 @@ def fitdf(ii, tag, N_up, N, V, bins, model):
 
     fitter = fitDF.fitter(obs, model=model, priors=priors, output_directory=folder)
     fitter.lnlikelihood = fitter.gaussian_lnlikelihood
-    samples = fitter.fit(nsamples=int(6e4), burn=int(5.5e4), sample_save_ID=f'{folder}_z{int(zs[ii])}', use_autocorr=False, verbose=True)
+    samples = fitter.fit(nsamples=int(6e4), burn=int(5e4), sample_save_ID=f'{folder}_z{int(zs[ii])}', use_autocorr=False, verbose=True)
 
     return samples
 
@@ -106,7 +106,7 @@ def fit(ii, tag, bins, model):
     binwidth = bins[1:] - bins[:-1]
 
     out, hist_all, err = get_lum_all(tags[ii], bins = bins)
-    ok = np.where(hist_all<5)[0]
+    ok = np.where(hist_all<=5)[0]
     out[ok] = 0.
     hist_all[ok] = 0.
     err[ok] = 0.

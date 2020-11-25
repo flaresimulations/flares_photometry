@@ -48,7 +48,6 @@ def get_all(dataset, tag):
     return dat
 
 
-
 plt_options = ['BC_plot_beta', 'BC_plot_EW', 'beta_Extcurves', 'EW_Extcurves', 'Att_Extcurves']
 kappa_BCs =     [0.0, 0.001,  0.1,  0.25,   0.5,  0.75,  1.,  1.25,  1.5,  1.75,    2.]
 kappa_ISMs =  [0.1925,0.0775,0.0475,0.0175,0.0075,0.0063,0.005,0.0075,0.0025,0.0025,0.0025,0.005,0.005]
@@ -84,6 +83,7 @@ if input == 0:
     fig, axs = plt.subplots(nrows = 1, ncols = 1, figsize=(6, 4), sharex=False, sharey=False, facecolor='w', edgecolor='k')
 
     for ii, kappa_BC in enumerate(kappa_BCs):
+        print ('Kappa_BC=', kappa_BC)
         xlims = [-16.9, -24.7]
         ylims = [-2.6,-1.]
 
@@ -95,7 +95,7 @@ if input == 0:
         for f in ['FUV','NUV']:
             L[f] = np.array([])
             w = np.array([])
-            with h5py.File(f'data1/flares.hdf5', 'r') as hf:
+            with h5py.File(f'./data1/flares.hdf5', 'r') as hf:
                 for sim in hf.keys():
                     tmp = np.array(hf[f'{sim}/{tag}/Galaxy/BPASS_2.2.1/Chabrier300/Luminosity/DustModelI_{kappa_BC}/{f}'])
                     L[f] = np.hstack((L[f], tmp))
@@ -265,16 +265,16 @@ elif input == 2:
     bincen = (bins[1:]+bins[:-1])/2.
     binwidth = bins[1:] - bins[:-1]
 
-    ext_curves = ['Default', 'Calzetti_1.0', 'SMC_1.0', 'N18_1.0']
+    ext_curves = ['Default', 'Calzetti1.0', 'SMC1.0', 'N181.0']
     labels = ['Default', 'Calzetti', 'SMC', 'N18']
     colors = ['black', 'brown', 'grey', 'orange']
 
     for ii, jj in enumerate(ext_curves):
         if ii == 0:
-            datafolder = 'data/flares.hdf5'
+            datafolder = './data/flares.hdf5'
             dataset = 'Galaxy/BPASS_2.2.1/Chabrier300/Luminosity/DustModelI'
         else:
-            datafolder = 'data1/flares.hdf5'
+            datafolder = './data1/flares.hdf5'
             dataset = F'Galaxy/BPASS_2.2.1/Chabrier300/Luminosity/DustModelI_{jj}'
 
         L = {}
@@ -323,7 +323,7 @@ elif input == 3:
 
     fig, axs = plt.subplots(nrows = 1, ncols = 3, figsize=(13, 2.5), sharex=False, sharey=False, facecolor='w', edgecolor='k')
 
-    ext_curves = ['Default', 'Calzetti_1.0', 'SMC_1.0', 'N18_1.0']
+    ext_curves = ['Default', 'Calzetti1.0', 'SMC1.0', 'N181.0']
     labels = ['Default', 'Calzetti', 'SMC', 'N18']
     colors = ['black', 'brown', 'grey', 'orange']
 
@@ -471,7 +471,7 @@ elif input == 4:
     bincen = (bins[1:]+bins[:-1])/2.
     binwidth = bins[1:] - bins[:-1]
 
-    ext_curves = ['Default', 'Calzetti_1.0', 'SMC_1.0', 'N18_1.0']
+    ext_curves = ['Default', 'Calzetti1.0', 'SMC1.0', 'N181.0']
     labels = ['Default', 'Calzetti', 'SMC', 'N18']
     colors = ['black', 'brown', 'grey', 'orange']
 
